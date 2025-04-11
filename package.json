@@ -1,0 +1,17 @@
+{
+  "type": "module",
+  "dependencies": {
+    "@nestjs/common": "^11.0.13",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/platform-express": "^11.0.13",
+    "@nguniversal/express-engine": "^16.2.0",
+    "@prisma/client": "^6.5.0",
+    "@types/bcrypt": "^5.0.2",
+    "@types/natural": "^5.1.5",
+    "bcrypt": "^5.1.1",
+    "natural": "^8.0.1"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2"
+  }
+}

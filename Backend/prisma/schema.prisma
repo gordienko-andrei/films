@@ -1,0 +1,138 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  role      String   @default("USER")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  reviews   Review[]
+  ratings   Rating[]
+}
+
+model Movie {
+  id          Int              @id @default(autoincrement())
+  title       String
+  description String
+  year        Int
+  director    String
+  genre       String
+  posterUrl   String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  reviews     Review[]
+  ratings     Rating[]
+  tags        MovieTag[]
+  collections MovieCollection[]
+}
+
+model Review {
+  id        Int            @id @default(autoincrement())
+  content   String
+  rating    Int            // Общая оценка фильма
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  user      User           @relation(fields: [userId], references: [id])
+  userId    Int
+  movie     Movie          @relation(fields: [movieId], references: [id])
+  movieId   Int
+  criteria  ReviewCriteria[] // Это массив, ссылающийся на модель ReviewCriteria
+  @@unique([userId, movieId])
+}
+
+
+model ReviewCriteria {
+  id        Int      @id @default(autoincrement())
+  name      String   // Название критерия (например, сюжет, актерская игра)
+  score     Int      // Оценка по критерию (1-10)
+  comment   String?  // Комментарий по критерию
+  review    Review   @relation(fields: [reviewId], references: [id])
+  reviewId  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+model Rating {
+  id        Int      @id @default(autoincrement())
+  score     Int      // Общая оценка фильма
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  movie     Movie    @relation(fields: [movieId], references: [id])
+  movieId   Int
+
+  @@unique([userId, movieId])
+}
+
+model Tag {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  movies    MovieTag[]
+}
+
+model MovieTag {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  movie     Movie    @relation(fields: [movieId], references: [id])
+  movieId   Int
+  tag       Tag      @relation(fields: [tagId], references: [id])
+  tagId     Int
+
+  @@unique([movieId, tagId])
+}
+
+model Collection {
+  id          Int              @id @default(autoincrement())
+  name        String
+  description String?
+  type        String
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  movies      MovieCollection[]
+}
+
+model MovieCollection {
+  id           Int        @id @default(autoincrement())
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  movie        Movie      @relation(fields: [movieId], references: [id])
+  movieId      Int
+  collection   Collection @relation(fields: [collectionId], references: [id])
+  collectionId Int
+
+  @@unique([movieId, collectionId])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum CollectionType {
+  POPULAR
+  TRENDING
+  RECOMMENDED
+  SIMILAR
+  USER_BASED
+  CONTENT_BASED
+}
