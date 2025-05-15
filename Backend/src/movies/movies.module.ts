@@ -8,11 +8,13 @@ import { AnalysisService } from './analysis.service';
 import { HttpModule } from '@nestjs/axios';
 import { CollectionsController } from './collections.controller';
 import { YoutubeService } from './youtube.service';
+import { EmotionsService } from './emotions.service';
+import { EmotionsController } from './emotions.controller';
 
 @Module({
   imports: [PrismaModule, HttpModule],
-  controllers: [MoviesController, CollectionsController],
-  providers: [MoviesService, TmdbService, RecommendationsService, AnalysisService, YoutubeService],
-  exports: [MoviesService, TmdbService, RecommendationsService, AnalysisService, YoutubeService],
+  controllers: [MoviesController, CollectionsController, EmotionsController],
+  providers: [MoviesService, TmdbService, RecommendationsService, AnalysisService, YoutubeService, EmotionsService],
+  exports: [MoviesService, TmdbService, RecommendationsService, AnalysisService, YoutubeService, EmotionsService],
 })
 export class MoviesModule {} 

@@ -14,35 +14,37 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  name      String?
-  role      String   @default("USER")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  reviews   Review[]
-  ratings   Rating[]
+  id           Int           @id @default(autoincrement())
+  email        String        @unique
+  password     String
+  name         String?
+  role         String        @default("USER")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  reviews      Review[]
+  ratings      Rating[]
+  userEmotions UserEmotion[]
 }
 
 model Movie {
-  id          String   @id @default(uuid())
-  externalId  String?          @unique
-  title       String
-  description String
-  year        Int
-  director    String
-  genre       String
-  posterUrl   String?  // deprecated
-  posterPath  String?
-  trailerUrl  String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  reviews     Review[]
-  ratings     Rating[]
-  tags        MovieTag[]
-  collections MovieCollection[]
-  @@map("movies")
+  id             String            @id @default(uuid())
+  externalId     String?           @unique
+  title          String
+  description    String
+  year           Int
+  director       String
+  genre          String
+  posterUrl      String?  // deprecated
+  posterPath     String?
+  trailerUrl     String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  reviews        Review[]
+  ratings        Rating[]
+  tags           MovieTag[]
+  collections    MovieCollection[]
+  filmEmotions   FilmEmotion[]
+  userEmotions   UserEmotion[]
 }
 
 model Review {
@@ -55,7 +57,7 @@ model Review {
   userId    Int
   movie     Movie          @relation(fields: [movieId], references: [id])
   movieId   String
-  criteria  ReviewCriteria[] // Это массив, ссылающийся на модель ReviewCriteria
+  criteria  ReviewCriteria[]
   @@unique([userId, movieId])
 }
 
@@ -107,7 +109,7 @@ model Collection {
   id          Int              @id @default(autoincrement())
   name        String
   description String?
-  type        String
+  type        String          // Оставляем как строку
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   movies      MovieCollection[]
@@ -123,6 +125,46 @@ model MovieCollection {
   collectionId Int
 
   @@unique([movieId, collectionId])
+}
+
+model Emotion {
+  id           Int           @id @default(autoincrement())
+  name         String
+  emoji        String
+  slug         String        @unique
+
+  // Relations
+  filmEmotions  FilmEmotion[]
+  userEmotions  UserEmotion[]
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("emotions")
+}
+
+model FilmEmotion {
+  filmId      String
+  emotionId   Int
+  count       Int           @default(0)
+  film        Movie         @relation(fields: [filmId], references: [id])
+  emotion     Emotion       @relation(fields: [emotionId], references: [id])
+
+  @@id([filmId, emotionId])
+  @@map("film_emotions")
+}
+
+model UserEmotion {
+  userId      Int
+  filmId      String
+  emotionId   Int
+  user        User          @relation(fields: [userId], references: [id])
+  film        Movie         @relation(fields: [filmId], references: [id])
+  emotion     Emotion       @relation(fields: [emotionId], references: [id])
+  createdAt   DateTime      @default(now())
+
+  @@id([userId, filmId, emotionId])
+  @@map("user_emotions")
 }
 
 enum Role {

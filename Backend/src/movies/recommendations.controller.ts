@@ -26,7 +26,7 @@ export class RecommendationsController {
   @ApiResponse({ status: 200, description: 'Return similar movies.' })
   @ApiResponse({ status: 404, description: 'Movie not found.' })
   getSimilarMovies(@Param('movieId') movieId: string, @Query('limit') limit = 10) {
-    return this.recommendationsService.getSimilarMovies(+movieId, limit);
+    return this.recommendationsService.getSimilarMovies(movieId, limit);
   }
 
   @Get('user/:userId')

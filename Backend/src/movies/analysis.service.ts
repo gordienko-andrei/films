@@ -4,7 +4,7 @@ import { Movie, Review, Rating } from '@prisma/client';
 import * as natural from 'natural';
 
 interface MovieAnalysis {
-  movieId: number;
+  movieId: string;
   averageScore: number;
   criteriaScores: {
     [key: string]: number;
@@ -28,7 +28,7 @@ interface ReviewWithCriteria {
   id: number;
   content: string;
   userId: number;
-  movieId: number;
+  movieId: string;
   createdAt: Date;
   updatedAt: Date;
   criteria: ReviewCriteria[];
@@ -44,8 +44,8 @@ export class AnalysisService {
     this.sentimentAnalyzer = new natural.SentimentAnalyzer('English', natural.PorterStemmer, 'afinn');
   }
 
-  async analyzeMovie(movieId: number): Promise<MovieAnalysis> {
-    // Получаем отзывы с критериями через SQL
+  async analyzeMovie(movieId: string): Promise<MovieAnalysis> {
+    // Get reviews with criteria via SQL
     const reviews = await this.prisma.$queryRaw<ReviewWithCriteria[]>`
       SELECT r.*, 
         json_agg(
@@ -69,16 +69,16 @@ export class AnalysisService {
       where: { movieId },
     });
 
-    // Анализ оценок по критериям
+    // Analyze criteria scores
     const criteriaScores = this.analyzeCriteria(reviews);
 
-    // Расчет средней оценки
+    // Calculate average score
     const averageScore = this.calculateAverageScore(ratings, criteriaScores);
 
-    // Анализ тональности отзывов
+    // Analyze review sentiment
     const sentimentScore = await this.analyzeSentiment(reviews);
 
-    // Расчет популярности
+    // Calculate popularity
     const popularityScore = this.calculatePopularity(reviews.length, ratings.length);
 
     return {
@@ -93,7 +93,7 @@ export class AnalysisService {
   private analyzeCriteria(reviews: ReviewWithCriteria[]) {
     const criteriaScores: { [key: string]: number[] } = {};
 
-    // Группируем оценки по критериям
+    // Group scores by criteria
     reviews.forEach(review => {
       if (review.criteria) {
         review.criteria.forEach(criteria => {
@@ -105,7 +105,7 @@ export class AnalysisService {
       }
     });
 
-    // Рассчитываем средние оценки по каждому критерию
+    // Calculate average scores for each criterion
     const result: { [key: string]: number } = {};
     Object.entries(criteriaScores).forEach(([name, scores]) => {
       result[name] = scores.reduce((a, b) => a + b, 0) / scores.length;
@@ -118,7 +118,7 @@ export class AnalysisService {
     ratings: Rating[],
     criteriaScores: { [key: string]: number },
   ): number {
-    // Учитываем как общие оценки, так и оценки по критериям
+    // Consider both overall ratings and criteria ratings
     const ratingScores = ratings.map(r => r.score);
     const criteriaAverage = Object.values(criteriaScores).reduce((a, b) => a + b, 0) / Object.keys(criteriaScores).length;
 
@@ -137,8 +137,8 @@ export class AnalysisService {
       if (!tokens || tokens.length === 0) continue;
 
       const sentiment = this.sentimentAnalyzer.getSentiment(tokens);
-      if (sentiment !== 0) { // Игнорируем нейтральные отзывы
-        totalSentiment += (sentiment + 5) / 10; // Нормализуем до 0-1
+      if (sentiment !== 0) { // Ignore neutral reviews
+        totalSentiment += (sentiment + 5) / 10; // Normalize to 0-1
         validReviews++;
       }
     }
@@ -147,15 +147,15 @@ export class AnalysisService {
   }
 
   private calculatePopularity(reviewCount: number, ratingCount: number): number {
-    // Учитываем количество отзывов и оценок
+    // Consider both review and rating counts
     const total = reviewCount + ratingCount;
-    return total > 0 ? total / 100 : 0; // Нормализуем до 0-1
+    return total > 0 ? total / 100 : 0; // Normalize to 0-1
   }
 
-  async findSimilarMovies(movieId: number, limit = 10): Promise<Movie[]> {
+  async findSimilarMovies(movieId: string, limit = 10): Promise<Movie[]> {
     const targetAnalysis = await this.analyzeMovie(movieId);
     
-    // Получаем все фильмы с отзывами и критериями через SQL
+    // Get all movies with reviews and criteria via SQL
     const allMovies = await this.prisma.$queryRaw<(Movie & { reviews: ReviewWithCriteria[] })[]>`
       SELECT m.*,
         json_agg(
@@ -188,7 +188,7 @@ export class AnalysisService {
       GROUP BY m.id
     `;
 
-    // Анализируем все фильмы и находим похожие
+    // Analyze all movies and find similar ones
     const moviesWithScores = await Promise.all(
       allMovies
         .filter(movie => movie.id !== movieId)
@@ -199,7 +199,7 @@ export class AnalysisService {
         }),
     );
 
-    // Сортируем по схожести и возвращаем топ-N
+    // Sort by similarity and return top-N
     return moviesWithScores
       .sort((a, b) => b.similarityScore - a.similarityScore)
       .slice(0, limit)
@@ -210,7 +210,7 @@ export class AnalysisService {
     target: MovieAnalysis,
     candidate: MovieAnalysis,
   ): number {
-    // Учитываем все аспекты анализа для расчета схожести
+    // Consider all aspects of analysis for similarity calculation
     const criteriaSimilarity = this.calculateCriteriaSimilarity(
       target.criteriaScores,
       candidate.criteriaScores,
@@ -238,7 +238,7 @@ export class AnalysisService {
     allCriteria.forEach(criteria => {
       const targetScore = target[criteria] || 0;
       const candidateScore = candidate[criteria] || 0;
-      const similarity = 1 - Math.abs(targetScore - candidateScore) / 10; // Нормализуем до 0-1
+      const similarity = 1 - Math.abs(targetScore - candidateScore) / 10; // Normalize to 0-1
       totalSimilarity += similarity;
       criteriaCount++;
     });
@@ -251,13 +251,13 @@ export class AnalysisService {
     const tokens = tokenizer.tokenize(text);
     if (!tokens) return [];
 
-    // Используем TF-IDF для определения важных слов
+    // Use TF-IDF to identify important words
     const tfidf = new natural.TfIdf();
     tfidf.addDocument(tokens.join(' '));
 
     const keyPhrases: string[] = [];
     tfidf.listTerms(0).forEach((item: { term: string; tfidf: number }) => {
-      if (item.tfidf > 0.1) { // Порог важности
+      if (item.tfidf > 0.1) { // Importance threshold
         keyPhrases.push(item.term);
       }
     });
@@ -282,7 +282,7 @@ export class AnalysisService {
     const sentiment = (this.sentimentAnalyzer.getSentiment(tokens) + 5) / 10;
     const keyPhrases = this.extractKeyPhrases(review.content);
 
-    // Простой анализ тем (можно улучшить)
+    // Simple topic analysis (can be improved)
     const topics = this.identifyTopics(review.content);
 
     return {
@@ -296,7 +296,7 @@ export class AnalysisService {
     const topics: string[] = [];
     const lowerText = text.toLowerCase();
 
-    // Простой словарь тем (можно расширить)
+    // Simple topic dictionary (can be expanded)
     const topicKeywords = {
       'сюжет': ['сюжет', 'история', 'сценарий', 'развитие'],
       'актеры': ['актеры', 'игра', 'исполнение', 'персонажи'],

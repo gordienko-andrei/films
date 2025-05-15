@@ -69,7 +69,7 @@ export class MoviesController {
   @ApiResponse({ status: 200, description: 'Movie retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Movie not found' })
   async findOne(@Param('id') id: string): Promise<Movie> {
-    const movie = await this.moviesService.findOne(+id);
+    const movie = await this.moviesService.findOne(id);
     if (!movie) {
       throw new NotFoundException(`Movie with ID ${id} not found`);
     }
@@ -87,7 +87,7 @@ export class MoviesController {
     @Param('id') id: string,
     @Body() updateMovieDto: UpdateMovieDto,
   ): Promise<Movie> {
-    return this.moviesService.update(+id, updateMovieDto);
+    return this.moviesService.update(id, updateMovieDto);
   }
 
   @Delete(':id')
@@ -97,7 +97,7 @@ export class MoviesController {
   @ApiResponse({ status: 200, description: 'Movie deleted successfully' })
   @ApiResponse({ status: 404, description: 'Movie not found' })
   remove(@Param('id') id: string): Promise<Movie> {
-    return this.moviesService.remove(+id);
+    return this.moviesService.remove(id);
   }
 
   @Get('search/tmdb')

@@ -3,7 +3,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TmdbService } from './tmdb.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
-import { Movie, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { Movie } from './interfaces/movie.interface';
 import { HttpModule } from '@nestjs/axios';
 
 interface TmdbMovie {
@@ -89,9 +90,12 @@ export class MoviesService {
     };
   }
 
-  async findOne(id: number): Promise<Movie | null> {
+  async findOne(id: string): Promise<Movie> {
     const movie = await this.prisma.movie.findUnique({
       where: { id },
+      include: {
+        ratings: true,
+      },
     });
 
     if (!movie) {
@@ -101,7 +105,7 @@ export class MoviesService {
     return movie;
   }
 
-  async update(id: number, updateMovieDto: UpdateMovieDto): Promise<Movie> {
+  async update(id: string, updateMovieDto: UpdateMovieDto): Promise<Movie> {
     try {
       return await this.prisma.movie.update({
         where: { id },
@@ -112,7 +116,7 @@ export class MoviesService {
     }
   }
 
-  async remove(id: number): Promise<Movie> {
+  async remove(id: string): Promise<Movie> {
     try {
       return await this.prisma.movie.delete({
         where: { id },
@@ -141,31 +145,31 @@ export class MoviesService {
       year: new Date(tmdbMovie.release_date).getFullYear(),
       director,
       genre,
-      posterUrl: tmdbMovie.poster_path ? this.tmdbService.getPosterUrl(tmdbMovie.poster_path) : undefined,
+      posterPath: tmdbMovie.poster_path || undefined,
+      externalId: tmdbId.toString(),
     });
   }
 
   convertTmdbMoviesToMovies(tmdbMovies: TmdbMovie[]): Partial<Movie>[] {
     return tmdbMovies.map(tmdbMovie => ({
-      id: tmdbMovie.id,
+      externalId: tmdbMovie.id.toString(),
       title: tmdbMovie.title,
       description: tmdbMovie.overview,
       year: new Date(tmdbMovie.release_date).getFullYear(),
       director: tmdbMovie.credits?.crew.find(c => c.job === 'Director')?.name || 'Unknown',
       genre: tmdbMovie.genres?.[0]?.name || 'Unknown',
-      posterUrl: tmdbMovie.poster_path ? this.tmdbService.getPosterUrl(tmdbMovie.poster_path) : undefined,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      posterPath: tmdbMovie.poster_path || null,
+      trailerUrl: null,
     }));
   }
 
-  async getRecentlyDiscussed() {
+  async getRecentlyDiscussed(): Promise<Movie[]> {
     return this.prisma.movie.findMany({
       where: {
         reviews: {
           some: {
             createdAt: {
-              gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // последние 7 дней
+              gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // last 7 days
             }
           }
         }
@@ -183,7 +187,7 @@ export class MoviesService {
     });
   }
 
-  async getNewMovies() {
+  async getNewMovies(): Promise<Movie[]> {
     return this.prisma.movie.findMany({
       orderBy: {
         createdAt: 'desc'
@@ -192,7 +196,7 @@ export class MoviesService {
     });
   }
 
-  async getTrending() {
+  async getTrending(): Promise<Movie[]> {
     const movies = await this.prisma.movie.findMany({
       include: {
         ratings: true
@@ -200,7 +204,6 @@ export class MoviesService {
       take: 20
     });
 
-    // Сортируем фильмы по среднему рейтингу
     return movies.sort((a, b) => {
       const avgRatingA = a.ratings.reduce((sum, r) => sum + r.score, 0) / (a.ratings.length || 1);
       const avgRatingB = b.ratings.reduce((sum, r) => sum + r.score, 0) / (b.ratings.length || 1);
@@ -208,7 +211,7 @@ export class MoviesService {
     });
   }
 
-  async getPopular() {
+  async getPopular(): Promise<Movie[]> {
     const movies = await this.prisma.movie.findMany({
       include: {
         ratings: true,
@@ -217,7 +220,6 @@ export class MoviesService {
       take: 20
     });
 
-    // Сортируем фильмы по количеству рейтингов и отзывов
     return movies.sort((a, b) => {
       const scoreA = a.ratings.length + a.reviews.length;
       const scoreB = b.ratings.length + b.reviews.length;

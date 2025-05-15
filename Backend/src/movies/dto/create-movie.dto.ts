@@ -60,4 +60,13 @@ export class CreateMovieDto {
   @IsOptional()
   @IsUrl()
   posterUrl?: string;
+
+  @ApiProperty({
+    example: '12345',
+    description: 'The external ID (e.g. TMDB ID)',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  externalId?: string;
 }

@@ -56,21 +56,21 @@ export class RecommendationsService {
       // Add movies to collection
       for (const movie of popularMovies) {
         const dbMovie = await prisma.movie.upsert({
-          where: { id: movie.id },
+          where: { externalId: movie.id.toString() },
           create: {
-            id: movie.id,
             title: movie.title,
             description: movie.overview,
             year: new Date(movie.release_date).getFullYear(),
             director: 'Unknown',
             genre: 'Unknown',
-            posterUrl: this.tmdbService.getPosterUrl(movie.poster_path),
+            posterPath: movie.poster_path,
+            externalId: movie.id.toString(),
           },
           update: {
             title: movie.title,
             description: movie.overview,
             year: new Date(movie.release_date).getFullYear(),
-            posterUrl: this.tmdbService.getPosterUrl(movie.poster_path),
+            posterPath: movie.poster_path,
           },
         });
 
@@ -104,7 +104,7 @@ export class RecommendationsService {
     });
   }
 
-  async getSimilarMovies(movieId: number, limit = 10): Promise<Movie[]> {
+  async getSimilarMovies(movieId: string, limit = 10): Promise<Movie[]> {
     const movie = await this.prisma.movie.findUnique({
       where: { id: movieId },
       include: {
@@ -197,7 +197,7 @@ export class RecommendationsService {
     });
   }
 
-  async addTagsToMovie(movieId: number, tagNames: string[]): Promise<Movie> {
+  async addTagsToMovie(movieId: string, tagNames: string[]): Promise<Movie> {
     const movie = await this.prisma.movie.findUnique({
       where: { id: movieId },
     });

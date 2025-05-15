@@ -12,7 +12,7 @@ export class ReviewsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new review for a movie' })
-  @ApiParam({ name: 'movieId', type: 'number', example: 1 })
+  @ApiParam({ name: 'movieId', type: 'string', example: 'uuid-v4' })
   @ApiBody({
     schema: {
       type: 'object',
@@ -31,7 +31,7 @@ export class ReviewsController {
         id: { type: 'number', example: 1 },
         content: { type: 'string', example: 'This movie was absolutely amazing! The acting was superb and the story was captivating.' },
         rating: { type: 'number', example: 5 },
-        movieId: { type: 'number', example: 1 },
+        movieId: { type: 'string', example: 'uuid-v4' },
         userId: { type: 'number', example: 1 },
         createdAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' },
         updatedAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' }
@@ -45,12 +45,12 @@ export class ReviewsController {
     @Body() reviewData: { content: string; rating: number },
     @Request() req: any
   ) {
-    return this.reviewsService.create(+movieId, reviewData, req.user.id);
+    return this.reviewsService.create(movieId, reviewData, req.user.id);
   }
 
   @Get(':movieId')
   @ApiOperation({ summary: 'Get all reviews for a movie' })
-  @ApiParam({ name: 'movieId', type: 'number', example: 1 })
+  @ApiParam({ name: 'movieId', type: 'string', example: 'uuid-v4' })
   @ApiResponse({ 
     status: 200, 
     description: 'Reviews retrieved successfully',
@@ -62,7 +62,7 @@ export class ReviewsController {
           id: { type: 'number', example: 1 },
           content: { type: 'string', example: 'This movie was absolutely amazing! The acting was superb and the story was captivating.' },
           rating: { type: 'number', example: 5 },
-          movieId: { type: 'number', example: 1 },
+          movieId: { type: 'string', example: 'uuid-v4' },
           userId: { type: 'number', example: 1 },
           createdAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' },
           updatedAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' }
@@ -71,7 +71,7 @@ export class ReviewsController {
     }
   })
   async findAllByMovie(@Param('movieId') movieId: string) {
-    return this.reviewsService.findAllByMovie(+movieId);
+    return this.reviewsService.findAllByMovie(movieId);
   }
 
   @Get('review/:id')
@@ -86,7 +86,7 @@ export class ReviewsController {
         id: { type: 'number', example: 1 },
         content: { type: 'string', example: 'This movie was absolutely amazing! The acting was superb and the story was captivating.' },
         rating: { type: 'number', example: 5 },
-        movieId: { type: 'number', example: 1 },
+        movieId: { type: 'string', example: 'uuid-v4' },
         userId: { type: 'number', example: 1 },
         createdAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' },
         updatedAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' }
@@ -121,7 +121,7 @@ export class ReviewsController {
         id: { type: 'number', example: 1 },
         content: { type: 'string', example: 'This movie was absolutely amazing! The acting was superb and the story was captivating.' },
         rating: { type: 'number', example: 5 },
-        movieId: { type: 'number', example: 1 },
+        movieId: { type: 'string', example: 'uuid-v4' },
         userId: { type: 'number', example: 1 },
         createdAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' },
         updatedAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' }
@@ -152,7 +152,7 @@ export class ReviewsController {
         id: { type: 'number', example: 1 },
         content: { type: 'string', example: 'This movie was absolutely amazing! The acting was superb and the story was captivating.' },
         rating: { type: 'number', example: 5 },
-        movieId: { type: 'number', example: 1 },
+        movieId: { type: 'string', example: 'uuid-v4' },
         userId: { type: 'number', example: 1 },
         createdAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' },
         updatedAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' }

@@ -1,24 +1,30 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateReviewDto } from './dto/create-review.dto';
+import { Prisma, Review } from '@prisma/client';
 
 @Injectable()
 export class ReviewsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(movieId: number, reviewData: { content: string; rating: number }, userId: number) {
+  async create(movieId: string, reviewData: { content: string; rating: number }, userId: number): Promise<Review> {
     return this.prisma.review.create({
       data: {
         content: reviewData.content,
         rating: reviewData.rating,
-        movieId,
-        userId
-      }
+        user: { connect: { id: userId } },
+        movie: { connect: { id: movieId } },
+      },
     });
   }
 
-  async findAllByMovie(movieId: number) {
+  async findAllByMovie(movieId: string) {
     return this.prisma.review.findMany({
-      where: { movieId }
+      where: { movieId },
+      include: {
+        user: true,
+        criteria: true,
+      },
     });
   }
 

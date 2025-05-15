@@ -12,7 +12,7 @@ export class RatingsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new rating for a movie' })
-  @ApiParam({ name: 'movieId', type: 'number', example: 1 })
+  @ApiParam({ name: 'movieId', type: 'string', example: 'uuid-v4' })
   @ApiBody({
     schema: {
       type: 'object',
@@ -29,7 +29,7 @@ export class RatingsController {
       properties: {
         id: { type: 'number', example: 1 },
         score: { type: 'number', example: 5 },
-        movieId: { type: 'number', example: 1 },
+        movieId: { type: 'string', example: 'uuid-v4' },
         userId: { type: 'number', example: 1 },
         createdAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' },
         updatedAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' }
@@ -43,12 +43,12 @@ export class RatingsController {
     @Body() ratingData: { score: number },
     @Request() req: any
   ) {
-    return this.ratingsService.create(+movieId, ratingData, req.user.id);
+    return this.ratingsService.create(movieId, ratingData, req.user.id);
   }
 
   @Get(':movieId')
   @ApiOperation({ summary: 'Get all ratings for a movie' })
-  @ApiParam({ name: 'movieId', type: 'number', example: 1 })
+  @ApiParam({ name: 'movieId', type: 'string', example: 'uuid-v4' })
   @ApiResponse({ 
     status: 200, 
     description: 'Ratings retrieved successfully',
@@ -59,7 +59,7 @@ export class RatingsController {
         properties: {
           id: { type: 'number', example: 1 },
           score: { type: 'number', example: 5 },
-          movieId: { type: 'number', example: 1 },
+          movieId: { type: 'string', example: 'uuid-v4' },
           userId: { type: 'number', example: 1 },
           createdAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' },
           updatedAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' }
@@ -68,7 +68,7 @@ export class RatingsController {
     }
   })
   async findAllByMovie(@Param('movieId') movieId: string) {
-    return this.ratingsService.findAllByMovie(+movieId);
+    return this.ratingsService.findAllForMovie(movieId);
   }
 
   @Get('rating/:id')
@@ -82,7 +82,7 @@ export class RatingsController {
       properties: {
         id: { type: 'number', example: 1 },
         score: { type: 'number', example: 5 },
-        movieId: { type: 'number', example: 1 },
+        movieId: { type: 'string', example: 'uuid-v4' },
         userId: { type: 'number', example: 1 },
         createdAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' },
         updatedAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' }
@@ -115,7 +115,7 @@ export class RatingsController {
       properties: {
         id: { type: 'number', example: 1 },
         score: { type: 'number', example: 5 },
-        movieId: { type: 'number', example: 1 },
+        movieId: { type: 'string', example: 'uuid-v4' },
         userId: { type: 'number', example: 1 },
         createdAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' },
         updatedAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' }
@@ -145,7 +145,7 @@ export class RatingsController {
       properties: {
         id: { type: 'number', example: 1 },
         score: { type: 'number', example: 5 },
-        movieId: { type: 'number', example: 1 },
+        movieId: { type: 'string', example: 'uuid-v4' },
         userId: { type: 'number', example: 1 },
         createdAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' },
         updatedAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' }

@@ -1,46 +1,116 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateRatingDto } from './dto/create-rating.dto';
+import { Prisma, Rating } from '@prisma/client';
 
 @Injectable()
 export class RatingsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(movieId: number, ratingData: { score: number }, userId: number) {
+  async checkMovieExists(movieId: string) {
     const movie = await this.prisma.movie.findUnique({
       where: { id: movieId },
     });
 
     if (!movie) {
-      throw new NotFoundException('Movie not found');
+      throw new NotFoundException(`Movie with ID ${movieId} not found`);
     }
+  }
+
+  async create(movieId: string, ratingData: { score: number }, userId: number): Promise<Rating> {
+    await this.checkMovieExists(movieId);
 
     const existingRating = await this.prisma.rating.findUnique({
       where: {
-        userId_movieId: { // Правильная форма запроса с составным индексом
+        userId_movieId: {
           userId,
           movieId,
         },
       },
     });
-    
 
     if (existingRating) {
-      throw new ConflictException('You have already rated this movie');
+      return this.prisma.rating.update({
+        where: {
+          userId_movieId: {
+            userId,
+            movieId,
+          },
+        },
+        data: {
+          score: ratingData.score,
+        },
+        include: {
+          movie: true,
+          user: true,
+        },
+      });
     }
 
     return this.prisma.rating.create({
       data: {
         score: ratingData.score,
-        movie: { connect: { id: movieId } },
         user: { connect: { id: userId } },
+        movie: { connect: { id: movieId } },
+      },
+      include: {
+        movie: true,
+        user: true,
       },
     });
   }
 
-  async findAllByMovie(movieId: number) {
+  async findAllForMovie(movieId: string) {
+    await this.checkMovieExists(movieId);
+
     return this.prisma.rating.findMany({
-      where: { movieId }
+      where: { movieId },
+      include: {
+        user: true,
+      },
     });
+  }
+
+  async getUserRating(userId: number, movieId: string) {
+    return this.prisma.rating.findUnique({
+      where: {
+        userId_movieId: {
+          userId,
+          movieId,
+        },
+      },
+    });
+  }
+
+  async getMovieRatingStats(movieId: string) {
+    await this.checkMovieExists(movieId);
+
+    const ratings = await this.prisma.rating.findMany({
+      where: { movieId },
+      select: {
+        score: true,
+      },
+    });
+
+    if (ratings.length === 0) {
+      return {
+        average: 0,
+        count: 0,
+      };
+    }
+
+    const result = await this.prisma.rating.aggregate({
+      where: { movieId },
+      _avg: {
+        score: true,
+      },
+      _count: true,
+    });
+
+    return {
+      average: result._avg?.score || 0,
+      count: result._count,
+    };
   }
 
   async findOne(id: number) {
@@ -91,26 +161,5 @@ export class RatingsService {
     return this.prisma.rating.delete({
       where: { id },
     });
-  }
-
-  async getAverageRating(movieId: number) {
-    const movie = await this.prisma.movie.findUnique({
-      where: { id: movieId },
-    });
-
-    if (!movie) {
-      throw new NotFoundException('Movie not found');
-    }
-
-    const result = await this.prisma.rating.aggregate({
-      where: { movieId },
-      _avg: { score: true },
-      _count: true,
-    });
-
-    return {
-      average: result._avg.score || 0,
-      count: result._count,
-    };
   }
 } 
