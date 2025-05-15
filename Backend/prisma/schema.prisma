@@ -26,19 +26,23 @@ model User {
 }
 
 model Movie {
-  id          Int              @id @default(autoincrement())
+  id          String   @id @default(uuid())
+  externalId  String?          @unique
   title       String
   description String
   year        Int
   director    String
   genre       String
-  posterUrl   String?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  posterUrl   String?  // deprecated
+  posterPath  String?
+  trailerUrl  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   reviews     Review[]
   ratings     Rating[]
   tags        MovieTag[]
   collections MovieCollection[]
+  @@map("movies")
 }
 
 model Review {
@@ -50,11 +54,10 @@ model Review {
   user      User           @relation(fields: [userId], references: [id])
   userId    Int
   movie     Movie          @relation(fields: [movieId], references: [id])
-  movieId   Int
+  movieId   String
   criteria  ReviewCriteria[] // Это массив, ссылающийся на модель ReviewCriteria
   @@unique([userId, movieId])
 }
-
 
 model ReviewCriteria {
   id        Int      @id @default(autoincrement())
@@ -67,7 +70,6 @@ model ReviewCriteria {
   updatedAt DateTime @updatedAt
 }
 
-
 model Rating {
   id        Int      @id @default(autoincrement())
   score     Int      // Общая оценка фильма
@@ -76,7 +78,7 @@ model Rating {
   user      User     @relation(fields: [userId], references: [id])
   userId    Int
   movie     Movie    @relation(fields: [movieId], references: [id])
-  movieId   Int
+  movieId   String
 
   @@unique([userId, movieId])
 }
@@ -94,7 +96,7 @@ model MovieTag {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   movie     Movie    @relation(fields: [movieId], references: [id])
-  movieId   Int
+  movieId   String
   tag       Tag      @relation(fields: [tagId], references: [id])
   tagId     Int
 
@@ -116,7 +118,7 @@ model MovieCollection {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   movie        Movie      @relation(fields: [movieId], references: [id])
-  movieId      Int
+  movieId      String
   collection   Collection @relation(fields: [collectionId], references: [id])
   collectionId Int
 

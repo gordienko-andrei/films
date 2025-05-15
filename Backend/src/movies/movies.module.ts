@@ -6,11 +6,13 @@ import { TmdbService } from './tmdb.service';
 import { RecommendationsService } from './recommendations.service';
 import { AnalysisService } from './analysis.service';
 import { HttpModule } from '@nestjs/axios';
+import { CollectionsController } from './collections.controller';
+import { YoutubeService } from './youtube.service';
 
 @Module({
   imports: [PrismaModule, HttpModule],
-  controllers: [MoviesController],
-  providers: [MoviesService, TmdbService, RecommendationsService, AnalysisService],
-  exports: [MoviesService, TmdbService, RecommendationsService, AnalysisService],
+  controllers: [MoviesController, CollectionsController],
+  providers: [MoviesService, TmdbService, RecommendationsService, AnalysisService, YoutubeService],
+  exports: [MoviesService, TmdbService, RecommendationsService, AnalysisService, YoutubeService],
 })
 export class MoviesModule {} 

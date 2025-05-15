@@ -43,9 +43,19 @@ export class CreateMovieDto {
   genre!: string;
 
   @ApiProperty({
-    example: 'https://example.com/poster.jpg',
-    description: 'The URL of the movie poster',
+    example: '/path/to/poster.jpg',
+    description: 'The TMDB poster path',
     required: false,
+  })
+  @IsOptional()
+  @IsString()
+  posterPath?: string;
+
+  @ApiProperty({
+    example: 'https://example.com/poster.jpg',
+    description: 'The URL of the movie poster (deprecated)',
+    required: false,
+    deprecated: true
   })
   @IsOptional()
   @IsUrl()

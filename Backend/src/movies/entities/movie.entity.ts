@@ -28,6 +28,9 @@ export class Movie {
   @Column()
   posterUrl!: string;
 
+  @Column({ nullable: true })
+  trailerUrl!: string;
+
   @Column()
   duration!: number; // in minutes
 

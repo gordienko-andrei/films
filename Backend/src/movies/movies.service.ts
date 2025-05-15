@@ -158,4 +158,70 @@ export class MoviesService {
       updatedAt: new Date(),
     }));
   }
+
+  async getRecentlyDiscussed() {
+    return this.prisma.movie.findMany({
+      where: {
+        reviews: {
+          some: {
+            createdAt: {
+              gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // последние 7 дней
+            }
+          }
+        }
+      },
+      include: {
+        reviews: true,
+        ratings: true
+      },
+      orderBy: {
+        reviews: {
+          _count: 'desc'
+        }
+      },
+      take: 20
+    });
+  }
+
+  async getNewMovies() {
+    return this.prisma.movie.findMany({
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: 20
+    });
+  }
+
+  async getTrending() {
+    const movies = await this.prisma.movie.findMany({
+      include: {
+        ratings: true
+      },
+      take: 20
+    });
+
+    // Сортируем фильмы по среднему рейтингу
+    return movies.sort((a, b) => {
+      const avgRatingA = a.ratings.reduce((sum, r) => sum + r.score, 0) / (a.ratings.length || 1);
+      const avgRatingB = b.ratings.reduce((sum, r) => sum + r.score, 0) / (b.ratings.length || 1);
+      return avgRatingB - avgRatingA;
+    });
+  }
+
+  async getPopular() {
+    const movies = await this.prisma.movie.findMany({
+      include: {
+        ratings: true,
+        reviews: true
+      },
+      take: 20
+    });
+
+    // Сортируем фильмы по количеству рейтингов и отзывов
+    return movies.sort((a, b) => {
+      const scoreA = a.ratings.length + a.reviews.length;
+      const scoreB = b.ratings.length + b.reviews.length;
+      return scoreB - scoreA;
+    });
+  }
 } 

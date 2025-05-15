@@ -3,6 +3,8 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 
+type ImageSize = 'w92' | 'w154' | 'w185' | 'w342' | 'w500' | 'w780' | 'original';
+
 interface TmdbMovie {
   id: number;
   title: string;
@@ -33,6 +35,7 @@ interface TmdbResponse {
 export class TmdbService {
   private readonly apiKey: string;
   private readonly baseUrl = 'https://api.themoviedb.org/3';
+  private readonly imageBaseUrl = 'https://image.tmdb.org/t/p';
 
   constructor(
     private readonly httpService: HttpService,
@@ -84,7 +87,12 @@ export class TmdbService {
     return response.data.results;
   }
 
-  getPosterUrl(posterPath: string): string {
-    return `https://image.tmdb.org/t/p/w500${posterPath}`;
+  getPosterUrl(posterPath: string, size: ImageSize = 'w500'): string {
+    if (!posterPath) return '';
+    return `${this.imageBaseUrl}/${size}${posterPath}`;
+  }
+
+  getOriginalPosterUrl(posterPath: string): string {
+    return this.getPosterUrl(posterPath, 'original');
   }
 } 

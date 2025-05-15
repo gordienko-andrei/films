@@ -9,8 +9,12 @@ dotenv.config();
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
-  // Enable CORS
-  app.enableCors();
+  // Enable CORS with specific configuration
+  app.enableCors({
+    origin: ['http://localhost:4200'], // Angular dev server
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    credentials: true,
+  });
   
   // Enable validation
   app.useGlobalPipes(new ValidationPipe());
@@ -27,5 +31,6 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
   
   await app.listen(3000);
+  console.log('Application is running on: http://localhost:3000');
 }
 bootstrap(); 
