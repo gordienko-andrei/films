@@ -1,0 +1,18 @@
+<div class="app-container">
+  <p-menubar [model]="menuItems">
+    <ng-template pTemplate="start">
+      <a routerLink="/" class="logo-link">
+        <span class="logo-text">
+            Review<span class="logo-highlight">Flix</span>
+        </span>
+      </a>
+    </ng-template>
+    <ng-template pTemplate="end">
+      
+    </ng-template>
+  </p-menubar>
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
+ 

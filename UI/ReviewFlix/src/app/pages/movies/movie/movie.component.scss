@@ -1,0 +1,46 @@
+.movie {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 1rem;
+    width: 100%;
+
+    &__media {
+        margin-bottom: 2rem;
+        
+        img {
+            width: 20rem;
+            height: auto;
+            border-radius: 8px;
+        }
+    }
+
+    &__title {
+        h1 {
+            font-size: 2rem;
+            margin: 0;
+        }
+    }
+}
+
+.movie__menu-items {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1rem;
+    flex-direction: row;
+
+    & span {
+        font-size: 1rem;
+        font-weight: bold;
+        color: #ff6b6b;
+    }
+}
+
+.movie__genres {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    flex-direction: row;
+}

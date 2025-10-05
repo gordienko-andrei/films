@@ -1,0 +1,20 @@
+<div class="recently__discussed-block">
+    <h2>{{ title }}</h2>
+    <p-carousel 
+        [value]="movies" 
+        [numVisible]="6" 
+        [numScroll]="3" 
+        [circular]="true"
+        [showIndicators]="false"
+        [responsiveOptions]="responsiveOptions">
+            <ng-template let-movie pTemplate="item">
+                <a class="carousel-item m-4 p-4" [routerLink]="['/movie', movie.id]">
+                    <div class="carousel-item__image">
+                        <img [src]="movie.posterUrl" [alt]="movie.title" class="carousel-item__image-img" />
+                    </div>
+                    <div class="carousel-item__title">{{ movie.title }}</div>
+                    <div class="carousel-item__year">{{ movie.year }}</div>
+                </a>
+            </ng-template>
+    </p-carousel>
+</div>

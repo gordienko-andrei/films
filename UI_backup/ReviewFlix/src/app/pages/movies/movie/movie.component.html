@@ -1,0 +1,15 @@
+<div class="movie">
+    <div class="movie__media">
+        <img [src]="movie?.posterUrl" [alt]="movie?.title" />
+    </div>
+    <div class="movie__title">
+        <h1>{{ movie?.title }} ({{ movie?.year }})</h1>
+        <p class="movie__menu-items"><span>🎭 Genre:</span> {{ movie?.genre }}</p>
+        <p class="movie__menu-items"><span>🎬 Directed by</span> {{ movie?.director }}</p>
+        <p class="movie__menu-items"><span>📝 Description:</span> {{ movie?.description }}</p>
+    </div>
+    <div class="emojis-block">
+        <app-emoji-rating [movieId]="movieId"></app-emoji-rating>
+    </div>
+      
+</div>
