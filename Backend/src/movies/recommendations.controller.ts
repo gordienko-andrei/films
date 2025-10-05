@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Post,
   Param,
   Query,
   UseGuards,
@@ -37,5 +38,20 @@ export class RecommendationsController {
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   getUserBasedRecommendations(@Param('userId') userId: string, @Query('limit') limit = 10) {
     return this.recommendationsService.getUserBasedRecommendations(+userId, limit);
+  }
+
+  // Admin endpoints (consider protecting with guard in production)
+  @Post('rebuild/:movieId')
+  @ApiOperation({ summary: 'Rebuild similars for a specific movie (admin)' })
+  async rebuildForMovie(@Param('movieId') movieId: string, @Query('topK') topK = 20) {
+    await this.recommendationsService.rebuildSimilarFor(movieId, Number(topK));
+    return { status: 'ok', movieId, topK: Number(topK) };
+  }
+
+  @Post('rebuild-all')
+  @ApiOperation({ summary: 'Rebuild embeddings and similars for all movies (admin)' })
+  async rebuildAll(@Query('topK') topK = 20) {
+    await this.recommendationsService.rebuildAll(Number(topK));
+    return { status: 'ok', topK: Number(topK) };
   }
 } 

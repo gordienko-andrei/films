@@ -11,6 +11,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { MoviesService } from './movies.service';
+import { RecommendationsService } from './recommendations.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -36,7 +37,10 @@ function splitGenres(genre?: string | null): string[] {
 @ApiTags('movies')
 @Controller('movies')
 export class MoviesController {
-  constructor(private readonly moviesService: MoviesService) {}
+  constructor(
+    private readonly moviesService: MoviesService,
+    private readonly recommendationsService: RecommendationsService,
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -143,7 +147,10 @@ export class MoviesController {
   @ApiOperation({ summary: 'Import a movie from TMDB by ID' })
   @ApiResponse({ status: 201, description: 'Movie imported successfully' })
   @ApiResponse({ status: 404, description: 'Movie not found in TMDB' })
-  importMovieFromTmdb(@Param('id') id: string): Promise<Movie> {
-    return this.moviesService.importMovieFromTmdb(+id);
+  async importMovieFromTmdb(@Param('id') id: string): Promise<Movie> {
+    const movie = await this.moviesService.importMovieFromTmdb(+id);
+    // Fire-and-forget: rebuild similars for this movie
+    void this.recommendationsService.rebuildSimilarFor(movie.id, 20);
+    return movie;
   }
 } 
