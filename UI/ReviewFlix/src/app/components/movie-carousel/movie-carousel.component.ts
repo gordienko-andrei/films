@@ -2,10 +2,12 @@ import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CarouselModule } from 'primeng/carousel';
 import { Movie } from '../../interfaces/movie.interface';
 import { RouterModule } from '@angular/router';
+import { CardModule } from 'primeng/card';
+
 @Component({
   selector: 'app-movie-carousel',
   standalone: true,
-  imports: [CarouselModule, RouterModule],
+  imports: [CarouselModule, RouterModule, CardModule],
   templateUrl: './movie-carousel.component.html',
   styleUrl: './movie-carousel.component.scss'
 })

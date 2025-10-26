@@ -1,3 +1,53 @@
+::ng-deep {
+    // Стили для всех p-card глобально
+    p-card {
+        display: block;
+        width: 100%;
+        
+        .p-card {
+            width: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            
+            .p-card-body {
+                padding: 1rem;
+                width: 100%;
+            }
+        }
+    }
+}
+
+.movie-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 2rem;
+    width: 100%;
+    
+    // Стили для p-card внутри movie-wrapper
+    ::ng-deep {
+        p-card {
+            display: block;
+            width: 100%;
+            
+            .p-card {
+                width: 100%;
+                min-width: 100%;
+                margin: 0;
+                display: flex;
+                flex-direction: column;
+                
+                .p-card-body {
+                    padding: 1rem;
+                    width: 100%;
+                }
+            }
+        }
+    }
+}
+
 .movie {
     display: flex;
     align-items: flex-start;
@@ -43,4 +93,12 @@
     justify-content: flex-start;
     gap: 0.5rem;
     flex-direction: row;
+}
+
+.movie__recommendations {
+    width: 100%;  
+}
+
+.movie__reviews {
+    width: 100%;
 }

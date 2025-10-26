@@ -1,0 +1,12 @@
+<p-card [header]="'Reviews'">
+    <div class="reviews-wrapper">
+        @if(reviews && reviews.length > 0) {
+            @for(review of reviews; track $index) {
+                <div class="review-item">
+                    <h3>{{ review.title }}</h3>
+                    <p>{{ review.content }}</p>
+                </div>
+            }
+        }
+    </div>
+</p-card>

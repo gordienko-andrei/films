@@ -1,0 +1,36 @@
+::ng-deep {
+    .p-card {
+        width: 100%;
+        margin: 0;
+        
+        .p-card-body {
+            padding: 1rem;
+        }
+    }
+}
+
+.home-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 2rem;
+    width: 100%;
+
+    ::ng-deep {
+        .p-card {
+            width: 100%;
+            margin: 0;
+            
+            .p-card-body {
+                padding: 1rem;
+            }
+        }
+    }
+}
+
+.recently__discussed-block,
+.new-movies-block,
+.trending-block {
+    width: 100%;
+}

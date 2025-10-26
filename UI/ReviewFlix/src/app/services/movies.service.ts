@@ -41,6 +41,11 @@ export class MoviesService {
     );
   }
 
+  // Метод для получения рекомендаций для фильма по его id
+  getSimilarMovies(id: string): Observable<Movie[]> {
+    return this.http.get<Movie[]>(`http://localhost:3000/recommendations/similar/${id}`);
+  }
+
   // Методы для работы с коллекциями фильмов
   getRecentlyDiscussed(): Observable<Movie[]> {
     return this.http.get<Movie[]>('http://localhost:3000/collections/recently-discussed').pipe(

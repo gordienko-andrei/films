@@ -1,23 +1,37 @@
-<div class="movie">
-    <div class="movie__media">
-        <img [src]="movie?.posterUrl" [alt]="movie?.title" />
-    </div>
-    <div class="movie-info">
-        <div class="movie__title">
-            <h1>{{ movie?.title }} ({{ movie?.year }})</h1>
-            <div class="movie__menu-items">
-                <span>🎭 Genre:</span>
-                <div class="movie__genres">
-                    @for(genre of movie?.genres; track $index) {
-                        <p-chip>{{ genre }}</p-chip>
-                    }
+<div class="movie-wrapper">
+    <p-card>
+        <div class="movie">
+            <div class="movie__media">
+                <img [src]="movie?.posterUrl" [alt]="movie?.title" />
+            </div>
+            <div class="movie-info">
+                <div class="movie__title">
+                    <h1>{{ movie?.title }} ({{ movie?.year }})</h1>
+                    <div class="movie__menu-items">
+                        <span>🎭 Genre:</span>
+                        <div class="movie__genres">
+                            @for(genre of movie?.genres; track $index) {
+                                <p-chip>{{ genre }}</p-chip>
+                            }
+                        </div>
+                    </div>
+                    <p class="movie__menu-items"><span>🎬 Directed by</span> {{ movie?.director }}</p>
+                    <p class="movie__menu-items"><span>📝 Description:</span> {{ movie?.description }}</p>
+                </div>
+                <div class="emojis-block">
+                    <app-emoji-rating [movieId]="movieId"></app-emoji-rating>
                 </div>
             </div>
-            <p class="movie__menu-items"><span>🎬 Directed by</span> {{ movie?.director }}</p>
-            <p class="movie__menu-items"><span>📝 Description:</span> {{ movie?.description }}</p>
         </div>
-        <div class="emojis-block">
-            <app-emoji-rating [movieId]="movieId"></app-emoji-rating>
-        </div>
+    </p-card>
+    <div class="movie__reviews">
+        <app-review-list [movieId]="movieId"></app-review-list>
+    </div>
+    <div class="movie__recommendations">
+        @if(recommendations && recommendations.length > 0) {
+            <app-movie-carousel [movies]="recommendations" title="Recommendations"></app-movie-carousel>
+        } 
     </div>
 </div>
+
+
