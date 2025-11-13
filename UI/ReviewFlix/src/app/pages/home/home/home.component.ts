@@ -1,4 +1,5 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { CarouselModule } from 'primeng/carousel';
 import { MoviesService } from '../../../services/movies.service';
 import { Movie } from '../../../interfaces/movie.interface';
@@ -14,15 +15,18 @@ import { MovieCarouselComponent } from "../../../components/movie-carousel/movie
 })
 export class HomeComponent implements OnInit{
   private moviesService = inject(MoviesService)
+  private platformId = inject(PLATFORM_ID);
 
   public recentlyDiscussedFilms: Movie[] = []
   public newMovies: Movie[] = [];
   public trendingMovies: Movie[] = [];  
   
   ngOnInit(): void {
-    this.getNewMovies();
-    this.getRecentlyDiscussed();
-    this.getTrendingMovies();
+    if (isPlatformBrowser(this.platformId)) {
+      this.getNewMovies();
+      this.getRecentlyDiscussed();
+      this.getTrendingMovies();
+    }
   }
 
   getNewMovies() {

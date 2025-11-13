@@ -8,7 +8,6 @@ import { CommonModule } from '@angular/common';
 import { EmojiRatingComponent } from '../emoji-rating/emoji-rating.component';
 import { ChipModule } from 'primeng/chip';
 import { MovieCarouselComponent } from '../../../components/movie-carousel/movie-carousel.component';
-import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReviewListComponent } from '../../reviews/review-list/review-list.component';
 import { CardModule } from 'primeng/card';
@@ -22,7 +21,6 @@ import { CardModule } from 'primeng/card';
 })
 export class MovieComponent implements OnInit {
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
   private moviesService = inject(MoviesService);
   private destroyRef = inject(DestroyRef);
 
@@ -39,6 +37,7 @@ export class MovieComponent implements OnInit {
       tap((params) => {
         this.movieId = params['id'];
         this.loadMovieData();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       })
     )
     .subscribe();

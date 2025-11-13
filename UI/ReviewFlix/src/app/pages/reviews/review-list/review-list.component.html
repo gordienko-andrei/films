@@ -8,5 +8,18 @@
                 </div>
             }
         }
+    
+        @if(createNewReviewVisible) {
+            <app-create-review [movieId]="movieId" (createNewReviewVisible)="createNewReviewVisible = $event"></app-create-review>
+        }
+        @else {
+            <p-button 
+                label="Create a review"
+                icon="pi pi-plus"
+                severity="danger"
+                (onClick)="showCreateReview()">
+            </p-button>
+        }
     </div>
 </p-card>
+

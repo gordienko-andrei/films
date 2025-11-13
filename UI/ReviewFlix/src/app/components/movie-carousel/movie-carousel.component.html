@@ -8,7 +8,7 @@
             [showIndicators]="false"
             [responsiveOptions]="responsiveOptions">
                 <ng-template let-movie pTemplate="item">
-                    <a class="carousel-item m-4 p-4" [routerLink]="['/movie', movie.id]">
+                    <a class="carousel-item" [routerLink]="['/movie', movie.id]">
                         <div class="carousel-item__image">
                             <img [src]="movie.posterUrl" [alt]="movie.title" class="carousel-item__image-img" />
                         </div>
