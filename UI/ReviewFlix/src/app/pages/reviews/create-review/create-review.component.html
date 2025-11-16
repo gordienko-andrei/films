@@ -2,153 +2,101 @@
 <p-card class="create-review-card" header="Create a review">
     <form [formGroup]="reviewForm">
         <p-accordion [multiple]="true" [activeIndex]="[0, 1, 2, 3]">
-            <!-- Секция 1: Основная информация -->
+            <!-- section 1: main information -->
             <p-accordion-panel value="0">
                 <p-accordion-header>Main information</p-accordion-header>
                 <p-accordion-content>
-                    <div class="form-group">
-                        <label>Overall rating (1-10) *</label>
-                        <p-rating 
-                            formControlName="rating"
-                            [stars]="10"
-                            [readonly]="false">
-                        </p-rating>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Review text *</label>
-                        <textarea 
-                            pInputTextarea 
-                            formControlName="content"
-                            rows="5"
-                            placeholder="Describe your impression of the movie...">
-                        </textarea>
+                    <div class="flex flex-column gap-4">
+                        <div class="form-group">
+                            <label>Overall rating (1-10) *</label>
+                            <p-rating 
+                                formControlName="rating"
+                                [stars]="10"
+                                [readonly]="false">
+                            </p-rating>
+                        </div>
+                        
+                        <div class="form-group flex flex-column gap-2">
+                            <label>Review text *</label>
+                            <textarea 
+                                pInputTextarea 
+                                formControlName="content"
+                                rows="5"
+                                placeholder="Describe your impression of the movie...">
+                            </textarea>
+                        </div>
                     </div>
                 </p-accordion-content>
             </p-accordion-panel>
             
-            <!-- Секция 2: Плюсы и минусы -->
+            <!-- section 2: pros and cons -->
             <p-accordion-panel value="1">
                 <p-accordion-header>Pros and cons</p-accordion-header>
                 <p-accordion-content>
-                <div class="form-section">
-                    <h4 class="mb-2">What liked</h4>
-                    <div formArrayName="pros">
-                        @for(pro of prosArray.controls; track $index) {
-                            <div class="chip-input">
-                                <input 
-                                    pInputText 
-                                    [formControl]="$any(pro)"
-                                    placeholder="For example: Excellent acting">
-                                <button 
-                                    type="button" 
-                                    pButton 
-                                    icon="pi pi-times"
-                                    (click)="removePro($index)">
-                                </button>
-                            </div>
-                        }
-                        <button 
-                            type="button" 
-                            pButton 
-                            label="Добавить"
-                            icon="pi pi-plus"
-                            (click)="addPro()">
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="form-section">
-                    <h4>What didn't like</h4>
-                    <div formArrayName="cons">
-                        @for(con of consArray.controls; track $index) {
-                            <div class="chip-input">
-                                <input 
-                                    pInputText 
-                                    [formControl]="$any(con)"
-                                    placeholder="For example: Too long">
-                                <button 
-                                    type="button" 
-                                    pButton 
-                                    icon="pi pi-times"
-                                    (click)="removeCon($index)">
-                                </button>
-                            </div>
-                        }
-                        <button 
-                            type="button" 
-                            pButton 
-                            label="Add"
-                            icon="pi pi-plus"
-                            (click)="addCon()">
-                        </button>
-                    </div>
-                </div>
-                </p-accordion-content>
-            </p-accordion-panel>
-            
-            <!-- Секция 3: Детальные критерии -->
-            <p-accordion-panel value="0">
-                <p-accordion-header>Criteria</p-accordion-header>
-                <p-accordion-content>
-                <div formArrayName="criteria">
-                    @for(criterion of criteriaArray.controls; track $index) {
-                        <div class="criterion-item" [formGroup]="$any(criterion)">
-                            <p-dropdown 
-                                formControlName="templateId"
-                                [options]="criterionTemplates"
-                                optionLabel="name"
-                                optionValue="id"
-                                placeholder="Выберите критерий">
-                            </p-dropdown>
-                            
-                            <label>Оценка (1-10)</label>
-                            <p-rating 
-                                formControlName="score"
-                                [stars]="10">
-                            </p-rating>
-                            
-                            <input 
-                                pInputText 
-                                formControlName="comment"
-                                placeholder="Комментарий (опционально)">
-                            
-                            <button 
-                                type="button" 
-                                pButton 
-                                icon="pi pi-times"
-                                (click)="removeCriterion($index)">
-                            </button>
+                    <div class="form-section flex flex-column gap-4">
+                        <div class="flex flex-column gap-2">
+                            <label>What liked</label>
+                            <textarea 
+                                pInputTextarea 
+                                formControlName="pros"
+                                rows="3"
+                                placeholder="For example: Excellent acting, great soundtrack, engaging plot...">
+                            </textarea>
                         </div>
-                    }
-                    
-                    <button 
-                        type="button" 
-                        pButton 
-                        label="Add criterion"
-                        icon="pi pi-plus"
-                        (click)="addCriterion()">
-                    </button>
-                </div>
+                        
+                        <div class="flex flex-column gap-2">
+                            <label>What didn't like</label>
+                            <textarea 
+                                pInputTextarea 
+                                formControlName="cons"
+                                rows="3"
+                                placeholder="For example: Too long, slow pacing...">
+                            </textarea>
+                        </div>
+                    </div>
                 </p-accordion-content>
             </p-accordion-panel>
             
-            <!-- Секция 4: Теги -->
+            <!-- section 3: detailed criteria -->
+            <p-accordion-panel value="2">
+                <p-accordion-header>Detailed criteria</p-accordion-header>
+                <p-accordion-content>
+                    <div class="criteria-list flex flex-column gap-3" formArrayName="criteria">
+                        @for(criterion of criterionTemplates; track criterion.id; let i = $index) {
+                            <div class="criterion-row flex align-items-center justify-between w-full" [formGroupName]="i">
+                                <label class="criterion-label flex-1">{{ criterion.name }}</label>
+                                <div class="flex align-items-center gap-3">
+                                    <p-rating 
+                                        formControlName="score"
+                                        [stars]="10"
+                                        [readonly]="false">
+                                    </p-rating>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </p-accordion-content>
+            </p-accordion-panel>
+            
+            <!-- section 4: tags -->
             <p-accordion-panel value="3">
                 <p-accordion-header>Tags</p-accordion-header>
                 <p-accordion-content>
-                <p-multiSelect 
-                    formControlName="tagIds"
-                    [options]="reviewTags"
-                    optionLabel="name"
-                    optionValue="id"
-                    placeholder="Выберите теги">
-                </p-multiSelect>
+                    <div class="flex flex-column gap-4 w-6">
+                        <p-multiSelect 
+                            formControlName="tagIds"
+                            [options]="reviewTags"
+                            optionLabel="name"
+                            optionValue="id"
+                            placeholder="Select tags"
+                            appendTo="body">
+                        </p-multiSelect>
+                    </div>
                 </p-accordion-content>
             </p-accordion-panel>
         </p-accordion>
         
-        <div class="form-actions flex justify-between items-center w-full">
+        <div class="form-actions flex justify-content-between align-items-center w-full mt-4">
             <p-button
                 label="Cancel"
                 icon="pi pi-times"
@@ -166,3 +114,4 @@
     </form>
 </p-card>
 
+<p-toast />

@@ -10,15 +10,37 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AccordionModule } from 'primeng/accordion';
+import { ReviewService } from '../review.service';
+import { catchError, of, take, tap } from 'rxjs';
+import { CreateReview } from '../../../interfaces/createReview.interface';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 @Component({
+  
   selector: 'app-create-review',
   standalone: true,
-  imports: [ButtonModule, StepperModule, CardModule, RatingModule, DropdownModule, MultiSelectModule, InputTextModule, TextareaModule, ReactiveFormsModule, AccordionModule],
+  imports: [
+    ButtonModule, 
+    StepperModule, 
+    CardModule, 
+    RatingModule, 
+    DropdownModule, 
+    MultiSelectModule, 
+    InputTextModule, 
+    TextareaModule, 
+    ReactiveFormsModule, 
+    AccordionModule, 
+    ToastModule
+  ],
+  providers: [MessageService],
   templateUrl: './create-review.component.html',
   styleUrl: './create-review.component.scss'
 })
 export class CreateReviewComponent {
+  private reviewService = inject(ReviewService);
+  private messageService = inject(MessageService);
+
   @Input() movieId!: string;
   @Output() createNewReviewVisible: EventEmitter<boolean> = new EventEmitter<boolean>();
 
@@ -55,68 +77,38 @@ export class CreateReviewComponent {
       rating: [0, [Validators.required, Validators.min(1), Validators.max(10)]],
       
       // Шаг 2: Плюсы и минусы
-      pros: this.fb.array([]),
-      cons: this.fb.array([]),
+      pros: ['', Validators.required],
+      cons: ['', Validators.required],
       
       // Шаг 3: Детальные критерии
-      criteria: this.fb.array([]),
+      criteria: this.fb.array(
+        this.criterionTemplates.map(template => 
+          this.fb.group({
+            templateId: [template.id],
+            score: [0, [Validators.min(0), Validators.max(10)]]
+          })
+        )
+      ),
       
       // Шаг 4: Теги
       tagIds: [[] as number[]] 
     });
   }
-  
-  // Методы для работы с pros
-  get prosArray(): FormArray {
-    return this.reviewForm.get('pros') as FormArray;
-  }
-  
-  addPro(): void {
-    this.prosArray.push(this.fb.control('', Validators.required));
-  }
-  
-  removePro(index: number): void {
-    this.prosArray.removeAt(index);
-  }
-  
-  // Методы для работы с cons
-  get consArray(): FormArray {
-    return this.reviewForm.get('cons') as FormArray;
-  }
-  
-  addCon(): void {
-    this.consArray.push(this.fb.control('', Validators.required));
-  }
-  
-  removeCon(index: number): void {
-    this.consArray.removeAt(index);
-  }
+
   
   // Методы для работы с criteria
   get criteriaArray(): FormArray {
     return this.reviewForm.get('criteria') as FormArray;
   }
   
-  addCriterion(): void {
-    this.criteriaArray.push(this.fb.group({
-      templateId: [null, Validators.required],
-      score: [0, [Validators.required, Validators.min(1), Validators.max(10)]],
-      comment: ['']
-    }));
-  }
-  
-  removeCriterion(index: number): void {
-    this.criteriaArray.removeAt(index);
-  }
-  
   submitReview(): void {
     if (this.reviewForm.valid) {
       const formValue = this.reviewForm.value;
-      const reviewData = {
+      const reviewData: CreateReview = {
         content: formValue.content,
         rating: formValue.rating,
-        pros: formValue.pros.filter((p: string) => p.trim().length > 0),
-        cons: formValue.cons.filter((c: string) => c.trim().length > 0),
+        pros: formValue.pros,
+        cons: formValue.cons,
         criteria: formValue.criteria.map((c: any) => ({
           templateId: c.templateId,
           score: c.score,
@@ -125,8 +117,25 @@ export class CreateReviewComponent {
         tagIds: formValue.tagIds || []
       };
       
-      // Отправка на бэкенд
-      console.log(reviewData);
+      this.reviewService.sendReview(this.movieId, reviewData)
+      .pipe(
+        take(1),
+        tap((response) => {
+          if(response) {
+            this.messageService.add(
+              { severity: 'success', summary: 'Success', detail: 'Review created successfully' }
+            );
+            this.hideCreateReview();
+          }
+        }),
+        catchError(() => {
+          this.messageService.add(
+            { severity: 'error', summary: 'Error', detail: 'Failed to create review' }
+          );
+          return of(null);
+        }),
+      )
+      .subscribe();
     }
   }
 

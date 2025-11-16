@@ -3,4 +3,50 @@
     .create-review-card .p-card-header {
         background-color: #252529;
     }
+
+    .create-review-card {
+        --p-rating-icon-size: 2rem;
+        --p-rating-icon-active-color: #dc2626;
+        --p-rating-icon-color: #cbd5e1;
+        --p-rating-gap: 0.5rem;
+    }
+
+    .p-accordion-panel {
+        .p-accordion-content {
+            min-height: 200px; 
+            padding-bottom: 2rem;
+        }
+    }
+
+    .p-accordion-panel:last-of-type {
+        .p-accordion-content {
+            min-height: 250px;
+            padding-bottom: 3rem;
+        }
+    }
+
+    .p-multiselect {
+        width: 100%;
+        
+        .p-multiselect-panel {
+            z-index: 1000;
+        }
+    }
+
+    .criteria-list {
+        .criterion-row {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            
+            &:hover {
+                background: rgba(255, 255, 255, 0.08);
+            }
+            
+            .criterion-label {
+                font-weight: 500;
+                color: #e2e8f0;
+            }
+        }
+    }
 }

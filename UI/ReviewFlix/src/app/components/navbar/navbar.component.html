@@ -1,0 +1,16 @@
+<p-menubar [model]="menuItems">
+    <ng-template pTemplate="start">
+      <a routerLink="/" class="logo-link">
+        <span class="logo-text">
+            Review<span class="logo-highlight">Flix</span>
+        </span>
+      </a>
+    </ng-template>
+    <ng-template pTemplate="end">
+        <p-button 
+          icon="pi pi-user" 
+          label="Login"
+          (onClick)="loginUser()">
+        </p-button>
+    </ng-template>
+</p-menubar>

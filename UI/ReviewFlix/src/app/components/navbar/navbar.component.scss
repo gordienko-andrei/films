@@ -1,36 +1,49 @@
-.navbar {
-    background-color: #1a1a1a;
-    padding: 1rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+:host ::ng-deep {
+    .p-menubar {
+        background-color: #1a1a1a;
+        border: none;
+        border-radius: 0;
+        padding: 1rem 2rem;
+    }
+
+    .p-menuitem-link {
+        color: #fff !important;
+        padding: 0.75rem 1.25rem;
+        
+        &:hover {
+            color: #ff6b6b !important;
+            background-color: rgba(255, 107, 107, 0.1);
+        }
+    }
+
+    .p-button {
+        background: transparent;
+        border: none;
+        color: #fff;
+        
+        &:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+    }
+
+    .pi {
+        font-size: 1.2rem;
+    }
 }
 
-.navbar-brand {
+.logo-link {
+    text-decoration: none;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    margin-right: 2rem;
+}
+
+.logo-text {
     font-size: 1.5rem;
     font-weight: bold;
 }
 
-.navbar-logo {
-    color: #fff;
-    text-decoration: none;
-}
-
 .logo-highlight {
-    color: #a80404;
-}
-
-.navbar-menu {
-    display: flex;
-    gap: 2rem;
-}
-
-.navbar-item {
-    color: #fff;
-    text-decoration: none;
-    transition: color 0.3s;
-}
-
-.navbar-item:hover {
     color: #ff6b6b;
 }

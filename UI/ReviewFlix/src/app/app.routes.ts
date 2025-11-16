@@ -6,6 +6,9 @@ export const routes: Routes = [
     path: '', component: HomeComponent 
   },
   { 
+    path: 'login', loadComponent: () => import('./pages/login/login/login.component').then(m => m.LoginComponent)
+  },
+  { 
     path: 'movie/:id', 
     loadComponent: () => import('./pages/movies/movie/movie.component').then(m => m.MovieComponent)
   },

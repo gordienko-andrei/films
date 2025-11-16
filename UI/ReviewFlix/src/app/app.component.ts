@@ -1,51 +1,29 @@
-import { Component, PLATFORM_ID, Inject, OnInit } from '@angular/core';
-import { CommonModule, isPlatformBrowser, isPlatformServer } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
-import { MenubarModule } from 'primeng/menubar';
-import { ButtonModule } from 'primeng/button';
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { NavigationEnd, Router, RouterModule, RouterOutlet } from '@angular/router';
+import { filter, map } from 'rxjs';
+import { NavbarComponent } from './components/navbar/navbar.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, MenubarModule, ButtonModule],
+  imports: [CommonModule, RouterOutlet, RouterModule, NavbarComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  isBrowser: boolean;
-  isServer: boolean;
+  private router = inject(Router);
+  isShowNavbar: boolean = true;
 
-  menuItems = [
-    {
-      label: 'Главная',
-      icon: 'pi pi-home',
-      routerLink: '/'
-    },
-    {
-      label: 'Фильмы',
-      icon: 'pi pi-video',
-      routerLink: '/movies'
-    },
-    {
-      label: 'Рецензии',
-      icon: 'pi pi-star',
-      routerLink: '/reviews'
-    }
-  ];
-
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
-    this.isBrowser = isPlatformBrowser(this.platformId);
-    this.isServer = isPlatformServer(this.platformId);
-  }
-
-  ngOnInit() {
-    if (this.isBrowser) {
-      console.log('Running in browser');
-    }
-
-    if (this.isServer) {
-      console.log('Running on server');
-    }
+  ngOnInit(): void {
+    this.router.events
+    .pipe(
+      filter((event: any) => event instanceof NavigationEnd),
+      map(() => this.router.url)
+    )
+    .subscribe(url => {
+      this.isShowNavbar = !url.includes('/login');
+    });
   }
 }
  
