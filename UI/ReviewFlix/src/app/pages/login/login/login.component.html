@@ -1,11 +1,76 @@
-<div class="login-container">
-    <div class="flex flex-column gap-2">
-        <p-card>
+<div class="login-container h-screen w-full">
+    <div class="flex flex-column gap-2 justify-content-center align-items-center h-full">
+        <p-card class="w-4">
             <ng-template pTemplate="header">
-                <h1>Login</h1>
+                <form [formGroup]="AuthorizationTypeForm" class="flex justify-content-center align-items-center py-2">
+                    <p-selectbutton 
+                        [options]="stateOptions" 
+                        formControlName="AuthorizationType" 
+                        optionLabel="label" 
+                        optionValue="value" />
+                </form>
             </ng-template>
+
             <ng-template pTemplate="body">
-                <p>Login to your account</p>
+                @if (authType() === AuthorizationType.LOGIN) {
+                    <form [formGroup]="loginForm" class="flex flex-column gap-2">
+                        <div class="flex flex-column gap-2">
+                            <label for="email">Email</label>
+                            <input 
+                                type="email" 
+                                pInputText 
+                                id="email" 
+                                formControlName="email"
+                            />
+                        </div>
+                        <div class="flex flex-column gap-2 w-full">
+                            <label for="password">Password</label>
+                            <p-password 
+                                formControlName="password" 
+                                id="password" 
+                                class="w-full"
+                                [feedback]="false"
+                                [toggleMask]="true" />
+                        </div>
+                    </form>
+                } @else {
+                    <form [formGroup]="registerForm" class="flex flex-column gap-2">
+                        <div class="flex flex-column gap-2">
+                            <label for="name">Name</label>
+                            <input 
+                                type="text" 
+                                pInputText 
+                                id="name" 
+                                formControlName="name"
+                            />
+                        </div>
+                        <div class="flex flex-column gap-2">
+                            <label for="email">Email</label>
+                            <input 
+                                type="email" 
+                                pInputText 
+                                id="email" 
+                                formControlName="email"
+                            />
+                        </div>
+                        <div class="flex flex-column gap-2">
+                            <label for="password">Password</label>
+                            <p-password formControlName="password" id="password" [toggleMask]="true" />
+                        </div>
+                    </form>
+                }
+            </ng-template>
+
+            <ng-template pTemplate="footer">
+                @if (authType() === AuthorizationType.LOGIN) {
+                    <div class="flex justify-content-center align-items-center gap-4">
+                        <p-button severity="primary" label="Login" (click)="login()" />
+                    </div>
+                } @else {
+                    <div class="flex justify-content-center align-items-center gap-4">
+                        <p-button severity="secondary" label="Register" (click)="register()" />
+                    </div>
+                }
             </ng-template>
         </p-card>
     </div>

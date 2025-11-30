@@ -1,12 +1,67 @@
 <p-card [header]="'Reviews'">
     <div class="reviews-wrapper">
         @if(reviews && reviews.length > 0) {
-            @for(review of reviews; track $index) {
-                <div class="review-item">
-                    <h3>{{ review.title }}</h3>
-                    <p>{{ review.content }}</p>
-                </div>
-            }
+            <div class="flex flex-column gap-2">
+                @for(review of reviews; track $index) {
+                    <p-card styleClass="review-item">
+                        <ng-template #title> 
+                            <div class="review-item__title flex align-items-center justify-content-between">
+                                <div class="review-item__title-left flex align-items-center justify-content-center gap-2">
+                                    <span>{{ review.user.name }}</span>
+                                    <span class="review-item__title-left-date text-sm text-gray-500">{{ review.createdAt | date:'dd.MM.yyyy' }}</span>
+                                </div>
+                                <div class="review-item__title-right">
+                                    <p-rating [stars]="10" [readonly]="true" [(ngModel)]="review.rating"></p-rating>
+                                </div>
+                            </div>
+                        </ng-template>
+                        <div class="review-item__content flex align-items-center justify-content-between gap-2">
+                            <p-card class="review-item__content-left">
+                                <div class="flex flex-column gap-2">
+                                    <h4 class="m-0">Review</h4>
+                                    <p>{{ review.content }}</p>
+                                </div>
+                                <div class="review-item__content-rating">
+                                    <h4>Pros</h4>
+                                        @for(pro of review.pros; track $index) {
+                                            <p>{{ pro }}</p>
+                                        }
+                                    <h4>Cons</h4>
+                                        @for(cons of review.cons; track $index) {
+                                            <p>{{ cons }}</p>
+                                        }
+                                </div>
+                                <div class="flex align-items-center justify-content-center">
+                                    <p-button label="Full review" (onClick)="toggleFullReview(review.id)"></p-button>
+                                </div>
+                            </p-card>
+                            <p-card class="review-item__content-right" [ngClass]="{'visible': fullReviewVisible}">
+                                <div class="flex flex-column gap-2">
+                                    <div class="review-item__content-right-tags flex flex-column gap-2">
+                                        <h4 class="m-0">Tags</h4>
+                                        <div class="flex flex-wrap gap-2">
+                                            @for(tag of review.tags; track $index) {
+                                                <p-tag class="review-item__content-right-tags-tag">{{ tag.name }}</p-tag>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="review-item__content-right-criteria flex flex-column gap-2">
+                                        <h4 class="m-0">Criteria</h4>
+                                        <div class="flex flex-column gap-2">
+                                            @for(criterion of review.criteria; track $index) {
+                                                <div class="flex flex-column gap-2">
+                                                    <h5 class="text-sm text-gray-500 p-0 m-0">{{ criterion.template?.name }}</h5>
+                                                    <p-rating [stars]="10" [readonly]="true" [(ngModel)]="criterion.score"></p-rating>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </p-card>
+                        </div>
+                    </p-card>
+                }
+            </div>
         }
     
         @if(createNewReviewVisible) {

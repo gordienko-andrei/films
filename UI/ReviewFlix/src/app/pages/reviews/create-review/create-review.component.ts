@@ -1,4 +1,4 @@
-import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output, OnInit } from '@angular/core';
 import { NonNullableFormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { StepperModule } from 'primeng/stepper';
@@ -10,8 +10,8 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AccordionModule } from 'primeng/accordion';
-import { ReviewService } from '../review.service';
-import { catchError, of, take, tap } from 'rxjs';
+import { ReviewService, CriterionTemplate, ReviewTag } from '../review.service';
+import { catchError, of, take, tap, forkJoin } from 'rxjs';
 import { CreateReview } from '../../../interfaces/createReview.interface';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
@@ -37,7 +37,7 @@ import { MessageService } from 'primeng/api';
   templateUrl: './create-review.component.html',
   styleUrl: './create-review.component.scss'
 })
-export class CreateReviewComponent {
+export class CreateReviewComponent implements OnInit {
   private reviewService = inject(ReviewService);
   private messageService = inject(MessageService);
 
@@ -50,21 +50,12 @@ export class CreateReviewComponent {
   reviewForm: FormGroup;
   
   // Предопределенные критерии (загружаются с бэкенда)
-  criterionTemplates = [
-    { id: 1, name: 'Сюжет', category: 'story' },
-    { id: 2, name: 'Актерская игра', category: 'acting' },
-    { id: 3, name: 'Визуальные эффекты', category: 'technical' },
-    { id: 4, name: 'Звук и музыка', category: 'technical' },
-    { id: 5, name: 'Режиссура', category: 'direction' }
-  ];
+  criterionTemplates: CriterionTemplate[] = [];
   
   // Теги для отзывов (загружаются с бэкенда)
-  reviewTags = [
-    { id: 1, name: 'Атмосферный', category: 'mood' },
-    { id: 2, name: 'Эмоциональный', category: 'mood' },
-    { id: 3, name: 'Экшн', category: 'genre-feel' },
-    { id: 4, name: 'Комедия', category: 'genre-feel' }
-  ];
+  reviewTags: ReviewTag[] = [];
+
+  isLoading = false;
 
   get tagIdsControl() {
     return this.reviewForm.get('tagIds');
@@ -80,19 +71,55 @@ export class CreateReviewComponent {
       pros: ['', Validators.required],
       cons: ['', Validators.required],
       
-      // Шаг 3: Детальные критерии
-      criteria: this.fb.array(
-        this.criterionTemplates.map(template => 
-          this.fb.group({
-            templateId: [template.id],
-            score: [0, [Validators.min(0), Validators.max(10)]]
-          })
-        )
-      ),
+      // Шаг 3: Детальные критерии (будет заполнен после загрузки)
+      criteria: this.fb.array([]),
       
       // Шаг 4: Теги
       tagIds: [[] as number[]] 
     });
+  }
+
+  ngOnInit() {
+    this.loadCriterionTemplatesAndTags();
+  }
+
+  loadCriterionTemplatesAndTags() {
+    this.isLoading = true;
+    
+    forkJoin({
+      templates: this.reviewService.getCriterionTemplates(),
+      tags: this.reviewService.getReviewTags()
+    })
+    .pipe(
+      take(1),
+      tap(({ templates, tags }) => {
+        this.criterionTemplates = templates;
+        this.reviewTags = tags;
+        
+        const criteriaArray = this.fb.array(
+          this.criterionTemplates.map(template => 
+            this.fb.group({
+              templateId: [template.id],
+              score: [0, [Validators.min(0), Validators.max(10)]]
+            })
+          )
+        );
+        
+        this.reviewForm.setControl('criteria', criteriaArray);
+        this.isLoading = false;
+      }),
+      catchError((error) => {
+        console.error('Error loading criterion templates and tags:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load review options'
+        });
+        this.isLoading = false;
+        return of({ templates: [], tags: [] });
+      })
+    )
+    .subscribe();
   }
 
   
@@ -104,11 +131,20 @@ export class CreateReviewComponent {
   submitReview(): void {
     if (this.reviewForm.valid) {
       const formValue = this.reviewForm.value;
+      
+      const prosArray = formValue.pros 
+        ? formValue.pros.split(',').map((item: string) => item.trim()).filter((item: string) => item.length > 0)
+        : [];
+      
+      const consArray = formValue.cons 
+        ? formValue.cons.split(',').map((item: string) => item.trim()).filter((item: string) => item.length > 0)
+        : [];
+      
       const reviewData: CreateReview = {
         content: formValue.content,
         rating: formValue.rating,
-        pros: formValue.pros,
-        cons: formValue.cons,
+        pros: prosArray,  
+        cons: consArray,  
         criteria: formValue.criteria.map((c: any) => ({
           templateId: c.templateId,
           score: c.score,

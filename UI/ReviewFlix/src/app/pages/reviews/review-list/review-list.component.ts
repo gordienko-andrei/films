@@ -1,4 +1,4 @@
-import { Component, inject, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, Input, OnInit } from '@angular/core';
 import { Review } from '../../../interfaces/review.interface';
 import { ReviewService } from '../../reviews/review.service'
 import { take, tap } from 'rxjs';
@@ -6,19 +6,27 @@ import { CardModule } from 'primeng/card';
 import { CreateReviewComponent } from '../create-review/create-review.component';
 import { InplaceModule } from 'primeng/inplace';
 import { ButtonModule } from 'primeng/button';
+import { DatePipe } from '@angular/common';
+import { RatingModule } from 'primeng/rating';
+import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import { TagModule } from 'primeng/tag';
+import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-review-list',
   standalone: true,
-  imports: [CardModule, CreateReviewComponent, InplaceModule, ButtonModule],
+  imports: [CardModule, CreateReviewComponent, InplaceModule, ButtonModule, DatePipe, RatingModule, ReactiveFormsModule, FormsModule, TagModule, NgClass],
   templateUrl: './review-list.component.html',
   styleUrl: './review-list.component.scss'
 })
 export class ReviewListComponent implements OnInit{
   @Input() movieId!: string;
   private reviewService = inject(ReviewService);
+  private cdr = inject(ChangeDetectorRef);
   public reviews: Review[] = [];
   public createNewReviewVisible: boolean = false;
+  public fullReviewVisible: Map<number, boolean> = new Map();
 
   ngOnInit(): void {
     this.getReviews();
@@ -30,9 +38,23 @@ export class ReviewListComponent implements OnInit{
       take(1),
       tap((reviews) => {
         this.reviews = reviews;
+        reviews.forEach(review => {
+          this.fullReviewVisible.set(review.id, false);
+        });
+        this.cdr.markForCheck();
       })
     )
     .subscribe();
+  }
+
+  toggleFullReview(reviewId: number): void {
+    const current = this.fullReviewVisible.get(reviewId) || false;
+    this.fullReviewVisible.set(reviewId, !current);
+    this.cdr.markForCheck();
+  }
+
+  isFullReviewVisible(reviewId: number): boolean {
+    return this.fullReviewVisible.get(reviewId) || false;
   }
 
   showCreateReview(): void {
