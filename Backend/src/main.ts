@@ -16,8 +16,12 @@ async function bootstrap() {
     credentials: true,
   });
   
-  // Enable validation
-  app.useGlobalPipes(new ValidationPipe());
+  // Enable validation with transformation
+  app.useGlobalPipes(new ValidationPipe({
+    transform: true, // Automatically transform payloads to DTO instances
+    whitelist: true, // Strip properties that don't have decorators
+    forbidNonWhitelisted: false, // Don't throw error, just strip non-whitelisted properties
+  }));
   
   // Swagger configuration
   const config = new DocumentBuilder()

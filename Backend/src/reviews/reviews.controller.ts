@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, BadRequestException } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiBody } from '@nestjs/swagger';
+import { CreateReviewDto } from './dto/create-review.dto';
 
 @ApiTags('reviews')
 @Controller('reviews')
@@ -13,15 +14,7 @@ export class ReviewsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new review for a movie' })
   @ApiParam({ name: 'movieId', type: 'string', example: 'uuid-v4' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        content: { type: 'string', example: 'This movie was absolutely amazing! The acting was superb and the story was captivating.' },
-        rating: { type: 'number', example: 5 }
-      },
-    },
-  })
+  @ApiBody({ type: CreateReviewDto })
   @ApiResponse({ 
     status: 201, 
     description: 'Review created successfully',
@@ -31,6 +24,8 @@ export class ReviewsController {
         id: { type: 'number', example: 1 },
         content: { type: 'string', example: 'This movie was absolutely amazing! The acting was superb and the story was captivating.' },
         rating: { type: 'number', example: 5 },
+        pros: { type: 'array', items: { type: 'string' }, example: ['Отличная актерская игра'] },
+        cons: { type: 'array', items: { type: 'string' }, example: ['Слишком длинный'] },
         movieId: { type: 'string', example: 'uuid-v4' },
         userId: { type: 'number', example: 1 },
         createdAt: { type: 'string', example: '2024-01-01T00:00:00.000Z' },
@@ -42,10 +37,14 @@ export class ReviewsController {
   @ApiResponse({ status: 404, description: 'Movie not found' })
   async create(
     @Param('movieId') movieId: string,
-    @Body() reviewData: { content: string; rating: number },
+    @Body() reviewData: CreateReviewDto,
     @Request() req: any
   ) {
-    return this.reviewsService.create(movieId, reviewData, req.user.id);
+    const userId = req.user?.userId || req.user?.id;
+    if (!userId) {
+      throw new BadRequestException('User ID not found in request. Please ensure you are authenticated.');
+    }
+    return this.reviewsService.create(movieId, reviewData, userId);
   }
 
   @Get(':movieId')

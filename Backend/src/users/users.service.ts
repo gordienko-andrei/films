@@ -7,11 +7,11 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async create(userData: { email: string; password: string; name: string }) {
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    // Пароль уже должен быть хеширован перед вызовом этого метода
     return this.prisma.user.create({
       data: {
         email: userData.email,
-        password: hashedPassword,
+        password: userData.password, // Ожидаем уже хешированный пароль
         name: userData.name,
         role: 'USER'
       }

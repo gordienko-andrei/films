@@ -18,6 +18,7 @@ model User {
   email        String        @unique
   password     String
   name         String?
+  avatar       String?
   role         String        @default("USER")
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
@@ -55,6 +56,8 @@ model Review {
   id        Int            @id @default(autoincrement())
   content   String
   rating    Int            // Общая оценка фильма
+  pros      String[]       @default([])  // Что понравилось
+  cons      String[]       @default([])  // Что не понравилось
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
   user      User           @relation(fields: [userId], references: [id])
@@ -62,16 +65,20 @@ model Review {
   movie     Movie          @relation(fields: [movieId], references: [id])
   movieId   String
   criteria  ReviewCriteria[]
+  tags      ReviewTag[]
+  metadata  ReviewMetadata?
   @@unique([userId, movieId])
 }
 
 model ReviewCriteria {
   id        Int      @id @default(autoincrement())
-  name      String   // Название критерия (например, сюжет, актерская игра)
+  name      String?  // Название критерия (если нет templateId)
   score     Int      // Оценка по критерию (1-10)
   comment   String?  // Комментарий по критерию
   review    Review   @relation(fields: [reviewId], references: [id])
   reviewId  Int
+  templateId Int?
+  template  ReviewCriterionTemplate? @relation(fields: [templateId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -183,6 +190,11 @@ enum CollectionType {
   SIMILAR
   USER_BASED
   CONTENT_BASED
+  REVIEW_BASED
+  CRITERIA_BASED
+  TAG_BASED
+  PROS_BASED
+  CONS_BASED
 }
 
 model MovieEmbedding {
@@ -204,4 +216,38 @@ model MovieSimilar {
   @@id([fromId, toId])
   @@index([fromId])
   @@index([toId])
+}
+
+// Предопределенные шаблоны критериев для унификации
+model ReviewCriterionTemplate {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique  // "Сюжет", "Актерская игра"
+  category    String   // "story", "acting", "technical"
+  weight      Float    @default(1.0)
+  isRequired  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  criteria    ReviewCriteria[]
+}
+
+// Теги для отзывов (для группировки)
+model ReviewTag {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  category  String   // "mood", "genre-feel", "audience"
+  reviews   Review[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Метаданные отзыва для анализа и ML
+model ReviewMetadata {
+  id              Int      @id @default(autoincrement())
+  reviewId        Int      @unique
+  review          Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  sentimentScore  Float?   // -1 до 1
+  keyPhrases      String[] @default([])
+  embedding       Json?    // Vector embedding для ML
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

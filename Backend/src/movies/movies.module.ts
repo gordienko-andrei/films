@@ -12,11 +12,12 @@ import { YoutubeService } from './youtube.service';
 import { EmotionsService } from './emotions.service';
 import { EmotionsController } from './emotions.controller';
 import { RecommenderCronService } from './recommender.cron.service';
+import { ReviewCollectionsService } from './review-collections.service';
 
 @Module({
   imports: [PrismaModule, HttpModule],
   controllers: [MoviesController, CollectionsController, EmotionsController, RecommendationsController],
-  providers: [MoviesService, TmdbService, RecommendationsService, AnalysisService, YoutubeService, EmotionsService, RecommenderCronService],
-  exports: [MoviesService, TmdbService, RecommendationsService, AnalysisService, YoutubeService, EmotionsService],
+  providers: [MoviesService, TmdbService, RecommendationsService, AnalysisService, YoutubeService, EmotionsService, RecommenderCronService, ReviewCollectionsService],
+  exports: [MoviesService, TmdbService, RecommendationsService, AnalysisService, YoutubeService, EmotionsService, ReviewCollectionsService],
 })
 export class MoviesModule {} 
