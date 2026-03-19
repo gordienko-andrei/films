@@ -1,27 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Review } from '../../interfaces/review.interface';
-import { Observable } from 'rxjs';
+import { Review, ReviewCriterionTemplate, ReviewTag } from '../../interfaces/review.interface';
+import { Observable, catchError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { CreateReview } from '../../interfaces/createReview.interface';
-
-export interface CriterionTemplate {
-  id: number;
-  name: string;
-  category: string;
-  weight: number;
-  isRequired: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface ReviewTag {
-  id: number;
-  name: string;
-  category: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 @Injectable({
   providedIn: 'root'
@@ -39,11 +21,15 @@ export class ReviewService {
     return this.http.post<Review>(`${this.apiUrl}/reviews/${movieId}`, review);
   }
 
-  getCriterionTemplates(): Observable<CriterionTemplate[]> {
-    return this.http.get<CriterionTemplate[]>(`${this.apiUrl}/review-criteria`);
+  getCriterionTemplates(): Observable<ReviewCriterionTemplate[]> {
+    return this.http.get<ReviewCriterionTemplate[]>(`${this.apiUrl}/reviews/criterion-templates`).pipe(
+      catchError(() => of([]))
+    );
   }
 
   getReviewTags(): Observable<ReviewTag[]> {
-    return this.http.get<ReviewTag[]>(`${this.apiUrl}/review-tags`);
+    return this.http.get<ReviewTag[]>(`${this.apiUrl}/reviews/tags`).pipe(
+      catchError(() => of([]))
+    );
   }
 }

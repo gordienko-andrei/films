@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { Movie } from '../interfaces/movie.interface';
+import { Movie, MovieSuggestionItem } from '../interfaces/movie.interface';
 import { Review } from '../interfaces/review.interface';
 import { User } from '../interfaces/user.interface';
 import { Observable, tap } from 'rxjs';
@@ -100,5 +100,23 @@ export class MoviesService {
   // Методы для работы с пользователями
   getCurrentUser(): Observable<User> {
     return this.http.get<User>(this.getUrl('/users/me'));
+  }
+
+  searchMovies(query: string, externalId?: string): Observable<Movie> {
+    const params = new HttpParams().set('query', query);
+    const url = this.getUrl('/movies/resolve');
+    const finalParams = externalId ? params.set('externalId', externalId) : params;
+    return this.http.get<Movie>(url, { params: finalParams });
+  }
+
+  suggestMovies(query: string, limit?: number): Observable<MovieSuggestionItem[]> {
+    const url = this.getUrl('/movies/suggest');
+    let params = new HttpParams().set('query', query);
+
+    if (typeof limit === 'number') {
+      params = params.set('limit', String(limit));
+    }
+
+    return this.http.get<MovieSuggestionItem[]>(url, { params });
   }
 }

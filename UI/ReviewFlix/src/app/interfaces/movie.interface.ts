@@ -15,3 +15,13 @@ export interface Movie {
   genres?: string[];
   cast?: string[];
 }  
+
+export interface MovieSuggestionItem {
+  id?: string;
+  externalId: string | null;
+  title: string;
+  year: number;
+  posterPath: string | null;
+  posterUrl: string | null;
+  inDatabase: boolean;
+}

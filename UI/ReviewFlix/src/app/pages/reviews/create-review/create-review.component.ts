@@ -10,11 +10,12 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AccordionModule } from 'primeng/accordion';
-import { ReviewService, CriterionTemplate, ReviewTag } from '../review.service';
+import { ReviewService } from '../review.service';
 import { catchError, of, take, tap, forkJoin } from 'rxjs';
 import { CreateReview } from '../../../interfaces/createReview.interface';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { ReviewCriterionTemplate, ReviewTag } from '../../../interfaces/review.interface';
 
 @Component({
   
@@ -49,10 +50,8 @@ export class CreateReviewComponent implements OnInit {
 
   reviewForm: FormGroup;
   
-  // Предопределенные критерии (загружаются с бэкенда)
-  criterionTemplates: CriterionTemplate[] = [];
+  criterionTemplates: ReviewCriterionTemplate[] = [];
   
-  // Теги для отзывов (загружаются с бэкенда)
   reviewTags: ReviewTag[] = [];
 
   isLoading = false;

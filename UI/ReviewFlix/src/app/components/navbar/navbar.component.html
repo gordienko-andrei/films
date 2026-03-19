@@ -7,10 +7,33 @@
       </a>
     </ng-template>
     <ng-template pTemplate="end">
-        <p-button 
-          icon="pi pi-user" 
-          label="Login"
-          (onClick)="loginUser()">
-        </p-button>
+      <div class="flex align-items-center justify-content-end gap-2">
+          <div class="flex align-items-center justify-content-end gap-2">
+            <form [formGroup]="searchForm" class="flex align-items-center gap-2">
+              <p-autocomplete 
+                formControlName="search" 
+                optionLabel="title"
+                placeholder="Search"
+                [suggestions]="moviesSuggestions" 
+                (completeMethod)="loadSuggestions($event)"
+                (onSelect)="onMovieSelect($event)">
+
+                <ng-template let-movie #item>
+                  <div class="flex items-center gap-2">
+                      <img [src]="movie.posterUrl" class="w-2rem h-3rem object-cover border-round-sm flex-shrink-0" />
+                      <p>{{ movie.title }}, {{ movie.year }}</p>
+                  </div>
+                </ng-template>
+              </p-autocomplete>
+            </form>
+          </div>
+          <p-button 
+            icon="pi pi-user" 
+            label="Login"
+            (onClick)="loginUser()">
+          </p-button>
+      </div>
     </ng-template>
 </p-menubar>
+
+<p-toast />
