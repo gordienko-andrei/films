@@ -102,3 +102,69 @@
 .movie__reviews {
     width: 100%;
 }
+
+.movie__badge-tv {
+    display: inline-block;
+    margin-left: 0.5rem;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    vertical-align: middle;
+    border-radius: 4px;
+    background: rgba(255, 107, 107, 0.25);
+    color: #ff6b6b;
+}
+
+.movie-credits__heading {
+    margin: 0 0 1rem;
+    font-size: 1.25rem;
+}
+
+.movie-credits__cast,
+.movie-credits__created-by {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+}
+
+.movie-credits__person {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.35rem;
+}
+
+.movie-credits__person-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.movie-credits__photo {
+    width: 92px;
+    height: 138px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: #222;
+}
+
+.movie-credits__photo--placeholder {
+    background: linear-gradient(135deg, #333, #1a1a1a);
+}
+
+.movie-credits__name {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.movie-credits__role {
+    font-size: 0.8rem;
+    opacity: 0.85;
+}
+
+.movie-credits__crew {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}

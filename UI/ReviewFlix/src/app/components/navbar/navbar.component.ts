@@ -1,9 +1,7 @@
-import { Component, inject } from '@angular/core';
-import { MenubarModule } from 'primeng/menubar';
+import { ChangeDetectorRef, Component, ElementRef, inject } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { Router, RouterModule } from '@angular/router';
 import { FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { InputTextModule } from 'primeng/inputtext';
 import { AutoCompleteCompleteEvent, AutoCompleteModule, AutoCompleteSelectEvent } from 'primeng/autocomplete';
 import { MoviesService } from '../../services/movies.service';
 import { catchError, EMPTY, take, tap } from 'rxjs';
@@ -15,11 +13,9 @@ import { ToastModule } from 'primeng/toast';
   selector: 'app-navbar',
   standalone: true,
   imports: [
-    MenubarModule, 
     ButtonModule, 
     RouterModule, 
     ReactiveFormsModule, 
-    InputTextModule,
     AutoCompleteModule,
     ToastModule
   ],
@@ -32,28 +28,15 @@ export class NavbarComponent {
   private fb = inject(NonNullableFormBuilder);
   private moviesService = inject(MoviesService);
   private messageService = inject(MessageService);
+  private host = inject(ElementRef<HTMLElement>);
+  private cdr = inject(ChangeDetectorRef);
 
   searchForm: FormGroup;
   private readonly MAX_SUGGESTIONS = 10;
   moviesSuggestions: MovieSuggestionItem[] = [];
 
-  menuItems = [
-    {
-      label: 'Главная',
-      icon: 'pi pi-home',
-      routerLink: '/'
-    },
-    {
-      label: 'Фильмы',
-      icon: 'pi pi-video',
-      routerLink: '/movies'
-    },
-    {
-      label: 'Рецензии',
-      icon: 'pi pi-star',
-      routerLink: '/reviews'
-    }
-  ];
+  /** Ширина выпадающего списка = ширина поля (актуально при appendTo body) */
+  autocompletePanelStyle: Record<string, string> = {};
 
   constructor() {
     this.searchForm = this.fb.group({
@@ -63,6 +46,21 @@ export class NavbarComponent {
 
   loginUser() {
     this.router.navigate(['/login']);
+  }
+
+  onAutocompletePanelShow(): void {
+    requestAnimationFrame(() => {
+      const input = this.host.nativeElement.querySelector(
+        '.navbar__search .p-autocomplete-input',
+      ) as HTMLElement | null;
+      if (input) {
+        const w = Math.round(input.getBoundingClientRect().width);
+        this.autocompletePanelStyle = { width: `${w}px`, 'min-width': `${w}px`, 'max-width': `${w}px` };
+      } else {
+        this.autocompletePanelStyle = {};
+      }
+      this.cdr.markForCheck();
+    });
   }
 
   loadSuggestions(event: AutoCompleteCompleteEvent) {

@@ -21,4 +21,54 @@ body {
     flex-direction: column;
     min-height: 100vh;
 }
-  
+
+/* PrimeNG Autocomplete: панель часто вешается на body — стили глобальные */
+.p-autocomplete-overlay.navbar-search-ac-panel,
+.navbar-search-ac-panel.p-autocomplete-overlay {
+  box-sizing: border-box;
+}
+
+.navbar-search-ac-panel .p-autocomplete-list-container {
+  width: 100%;
+}
+
+.navbar-search-ac-panel .p-autocomplete-option {
+  min-width: 0;
+}
+
+.navbar-ac-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.navbar-ac-option__poster {
+  width: 2rem;
+  height: 3rem;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.navbar-ac-option__text {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.navbar-ac-option__tv {
+  display: inline-block;
+  margin-right: 0.35rem;
+  padding: 0.05rem 0.35rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  vertical-align: middle;
+  border-radius: 3px;
+  background: rgba(255, 107, 107, 0.35);
+  color: #ffb3b3;
+}

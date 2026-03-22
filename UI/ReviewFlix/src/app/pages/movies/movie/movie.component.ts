@@ -1,7 +1,7 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MoviesService } from '../../../services/movies.service';
-import { Movie } from '../../../interfaces/movie.interface';
+import { Movie, MovieCreditsSnapshot } from '../../../interfaces/movie.interface';
 import { finalize, switchMap, tap } from 'rxjs/operators';
 import { take } from 'rxjs';
 import { CommonModule } from '@angular/common';
@@ -29,6 +29,18 @@ export class MovieComponent implements OnInit {
   public isLoading = false;
   public recommendations: Movie[] = [];
 
+  /** Удобно для шаблона: типизированные credits с API */
+  get credits(): MovieCreditsSnapshot | null {
+    const raw = this.movie?.credits;
+    if (!raw || typeof raw !== 'object') {
+      return null;
+    }
+    return raw as MovieCreditsSnapshot;
+  }
+
+  get isTv(): boolean {
+    return this.movie?.mediaType === 'tv';
+  }
 
   ngOnInit(): void { 
     this.route.params

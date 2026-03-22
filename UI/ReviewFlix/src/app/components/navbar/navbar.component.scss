@@ -1,49 +1,89 @@
-:host ::ng-deep {
-    .p-menubar {
-        background-color: #1a1a1a;
-        border: none;
-        border-radius: 0;
-        padding: 1rem 2rem;
-    }
+:host {
+  display: block;
+}
 
-    .p-menuitem-link {
-        color: #fff !important;
-        padding: 0.75rem 1.25rem;
-        
-        &:hover {
-            color: #ff6b6b !important;
-            background-color: rgba(255, 107, 107, 0.1);
-        }
-    }
+.navbar {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  gap: 1rem;
+  background-color: #1a1a1a;
+  border: none;
+  border-radius: 0;
+  padding: 1rem 2rem;
+  position: relative;
+}
 
-    .p-button {
-        background: transparent;
-        border: none;
-        color: #fff;
-        
-        &:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-    }
+.navbar__search {
+  justify-self: stretch;
+  width: 100%;
+  min-width: 0;
+}
 
-    .pi {
-        font-size: 1.2rem;
-    }
+.navbar__search-form {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.navbar__actions {
+  justify-self: end;
 }
 
 .logo-link {
-    text-decoration: none;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    margin-right: 2rem;
+  text-decoration: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-self: start;
 }
 
 .logo-text {
-    font-size: 1.5rem;
-    font-weight: bold;
+  font-size: 1.5rem;
+  font-weight: bold;
 }
 
 .logo-highlight {
-    color: #ff6b6b;
+  color: #ff6b6b;
+}
+
+:host ::ng-deep {
+  /* PrimeNG: host + fluid root must span full middle column */
+  .navbar__search p-autocomplete {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .navbar__search .p-autocomplete {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .navbar__search .p-autocomplete-fluid {
+    width: 100%;
+  }
+
+  .navbar__search .p-autocomplete-input,
+  .navbar__search .p-autocomplete-input-multiple,
+  .navbar__search .p-autocomplete-input-chip input,
+  .navbar__search .p-inputtext {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .p-button {
+    background: transparent;
+    border: none;
+    color: #fff;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  .pi {
+    font-size: 1.2rem;
+  }
 }

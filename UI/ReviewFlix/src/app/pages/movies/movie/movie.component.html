@@ -6,7 +6,12 @@
             </div>
             <div class="movie-info">
                 <div class="movie__title">
-                    <h1>{{ movie?.title }} ({{ movie?.year }})</h1>
+                    <h1>
+                        {{ movie?.title }} ({{ movie?.year }})
+                        @if (isTv) {
+                            <span class="movie__badge-tv">TV</span>
+                        }
+                    </h1>
                     <div class="movie__menu-items">
                         <span>🎭 Genre:</span>
                         <div class="movie__genres">
@@ -24,6 +29,59 @@
             </div>
         </div>
     </p-card>
+
+    @if (credits?.createdBy?.length) {
+        <p-card styleClass="movie-credits-card">
+            <h2 class="movie-credits__heading">Created by</h2>
+            <div class="movie-credits__created-by">
+                @for (p of credits!.createdBy!; track p.name) {
+                    <div class="movie-credits__person">
+                        @if (p.profileUrl) {
+                            <img [src]="p.profileUrl" [alt]="p.name" class="movie-credits__photo" />
+                        } @else {
+                            <div class="movie-credits__photo movie-credits__photo--placeholder"></div>
+                        }
+                        <span class="movie-credits__name">{{ p.name }}</span>
+                    </div>
+                }
+            </div>
+        </p-card>
+    }
+
+    @if (credits?.cast?.length) {
+        <p-card styleClass="movie-credits-card">
+            <h2 class="movie-credits__heading">Cast</h2>
+            <div class="movie-credits__cast">
+                @for (c of credits!.cast!; track c.id ?? c.name) {
+                    <div class="movie-credits__person">
+                        @if (c.profileUrl) {
+                            <img [src]="c.profileUrl" [alt]="c.name" class="movie-credits__photo" />
+                        } @else {
+                            <div class="movie-credits__photo movie-credits__photo--placeholder"></div>
+                        }
+                        <div class="movie-credits__person-text">
+                            <span class="movie-credits__name">{{ c.name }}</span>
+                            @if (c.character) {
+                                <span class="movie-credits__role">{{ c.character }}</span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </p-card>
+    }
+
+    @if (credits?.crew?.length) {
+        <p-card styleClass="movie-credits-card">
+            <h2 class="movie-credits__heading">Crew</h2>
+            <div class="movie-credits__crew">
+                @for (m of credits!.crew!; track $index) {
+                    <p-chip [label]="m.name + ' — ' + m.job"></p-chip>
+                }
+            </div>
+        </p-card>
+    }
+
     <div class="movie__reviews">
         <app-review-list [movieId]="movieId"></app-review-list>
     </div>

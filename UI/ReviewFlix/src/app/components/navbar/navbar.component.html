@@ -1,39 +1,46 @@
-<p-menubar [model]="menuItems">
-    <ng-template pTemplate="start">
-      <a routerLink="/" class="logo-link">
-        <span class="logo-text">
-            Review<span class="logo-highlight">Flix</span>
-        </span>
-      </a>
-    </ng-template>
-    <ng-template pTemplate="end">
-      <div class="flex align-items-center justify-content-end gap-2">
-          <div class="flex align-items-center justify-content-end gap-2">
-            <form [formGroup]="searchForm" class="flex align-items-center gap-2">
-              <p-autocomplete 
-                formControlName="search" 
-                optionLabel="title"
-                placeholder="Search"
-                [suggestions]="moviesSuggestions" 
-                (completeMethod)="loadSuggestions($event)"
-                (onSelect)="onMovieSelect($event)">
+<nav class="navbar">
+  <a routerLink="/" class="logo-link">
+    <span class="logo-text">
+      Review<span class="logo-highlight">Flix</span>
+    </span>
+  </a>
 
-                <ng-template let-movie #item>
-                  <div class="flex items-center gap-2">
-                      <img [src]="movie.posterUrl" class="w-2rem h-3rem object-cover border-round-sm flex-shrink-0" />
-                      <p>{{ movie.title }}, {{ movie.year }}</p>
-                  </div>
-                </ng-template>
-              </p-autocomplete>
-            </form>
+  <div class="navbar__search">
+    <form [formGroup]="searchForm" class="navbar__search-form">
+      <p-autocomplete
+        formControlName="search"
+        optionLabel="title"
+        placeholder="Search"
+        [fluid]="true"
+        [suggestions]="moviesSuggestions"
+        [panelStyle]="autocompletePanelStyle"
+        panelStyleClass="navbar-search-ac-panel"
+        (completeMethod)="loadSuggestions($event)"
+        (onShow)="onAutocompletePanelShow()"
+        (onSelect)="onMovieSelect($event)">
+
+        <ng-template let-movie #item>
+          <div class="navbar-ac-option">
+            <img [src]="movie.posterUrl" class="navbar-ac-option__poster" alt="" />
+            <span class="navbar-ac-option__text">
+              @if (movie.mediaType === 'tv') {
+                <span class="navbar-ac-option__tv">TV</span>
+              }
+              {{ movie.title }}, {{ movie.year }}
+            </span>
           </div>
-          <p-button 
-            icon="pi pi-user" 
-            label="Login"
-            (onClick)="loginUser()">
-          </p-button>
-      </div>
-    </ng-template>
-</p-menubar>
+        </ng-template>
+      </p-autocomplete>
+    </form>
+  </div>
+
+  <div class="navbar__actions">
+    <p-button
+      icon="pi pi-user"
+      label="Login"
+      (onClick)="loginUser()">
+    </p-button>
+  </div>
+</nav>
 
 <p-toast />
