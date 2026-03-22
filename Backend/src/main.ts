@@ -20,7 +20,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({
     transform: true, // Automatically transform payloads to DTO instances
     whitelist: true, // Strip properties that don't have decorators
-    forbidNonWhitelisted: false, // Don't throw error, just strip non-whitelisted properties
+    forbidNonWhitelisted: true, // Throw error if non-whitelisted properties are present
   }));
   
   // Swagger configuration

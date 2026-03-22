@@ -16,7 +16,7 @@ export class AuthController {
   @UsePipes(new ValidationPipe({ 
     whitelist: false, 
     forbidNonWhitelisted: false,
-    transform: false // Отключаем transform, чтобы passport-local получил сырые данные
+    transform: false 
   }))
   @UseGuards(LocalAuthGuard)
   @ApiOperation({ summary: 'Login user' })

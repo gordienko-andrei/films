@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Movie" ADD COLUMN IF NOT EXISTS "mediaType" TEXT NOT NULL DEFAULT 'movie';
+ALTER TABLE "Movie" ADD COLUMN IF NOT EXISTS "creditsJson" JSONB;

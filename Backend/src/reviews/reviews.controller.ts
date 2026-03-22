@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiBody } from '@nestjs/swagger';
@@ -40,11 +40,7 @@ export class ReviewsController {
     @Body() reviewData: CreateReviewDto,
     @Request() req: any
   ) {
-    const userId = req.user?.userId || req.user?.id;
-    if (!userId) {
-      throw new BadRequestException('User ID not found in request. Please ensure you are authenticated.');
-    }
-    return this.reviewsService.create(movieId, reviewData, userId);
+    return this.reviewsService.create(movieId, reviewData, req.user.id);
   }
 
   @Get(':movieId')

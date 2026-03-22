@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   Post,
@@ -10,15 +11,28 @@ import {
   Query,
   NotFoundException,
 } from '@nestjs/common';
-import { MoviesService } from './movies.service';
-import { RecommendationsService } from './recommendations.service';
+import { MovieSuggestion, MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery, ApiBody } from '@nestjs/swagger';
-import { Movie } from '@prisma/client';
+import { Movie, Prisma } from '@prisma/client';
 
-type MovieWithGenres = Movie & { genres: string[] };
+type MovieRow = Movie & { creditsJson?: Prisma.JsonValue | null };
+
+type MovieWithGenres = Omit<MovieRow, 'creditsJson'> & {
+  genres: string[];
+  credits: Prisma.JsonValue | null;
+};
+
+function toMovieWithGenres(movie: MovieRow): MovieWithGenres {
+  const { creditsJson, ...rest } = movie;
+  return {
+    ...(rest as Omit<MovieRow, 'creditsJson'>),
+    genres: splitGenres(movie.genre),
+    credits: creditsJson ?? null,
+  };
+}
 
 interface PaginatedMoviesResponse {
   movies: MovieWithGenres[];
@@ -37,10 +51,7 @@ function splitGenres(genre?: string | null): string[] {
 @ApiTags('movies')
 @Controller('movies')
 export class MoviesController {
-  constructor(
-    private readonly moviesService: MoviesService,
-    private readonly recommendationsService: RecommendationsService,
-  ) {}
+  constructor(private readonly moviesService: MoviesService) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -70,14 +81,49 @@ export class MoviesController {
   ): Promise<PaginatedMoviesResponse> {
     const result = await this.moviesService.findAll(page, limit, { genre, year, director });
     return {
-      movies: result.data.map((m) => ({
-        ...m,
-        genres: splitGenres(m.genre),
-      })),
+      movies: result.data.map((m) => toMovieWithGenres(m as MovieRow)),
       total: result.meta.total,
       page: result.meta.page,
       limit: result.meta.limit,
     };
+  }
+
+  @Get('suggest')
+  @ApiOperation({ summary: 'Get movie suggestions for search dropdown' })
+  @ApiQuery({ name: 'query', required: true, type: String })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Max suggestions (1-20)' })
+  @ApiResponse({ status: 200, description: 'Suggestions returned successfully' })
+  @ApiResponse({ status: 400, description: 'Query is required' })
+  async suggestMovies(
+    @Query('query') query: string,
+    @Query('limit') limit = '8',
+  ): Promise<MovieSuggestion[]> {
+    if (!query?.trim()) {
+      throw new BadRequestException('Query is required');
+    }
+
+    const parsedLimit = Number.parseInt(limit, 10);
+    const safeLimit = Number.isNaN(parsedLimit) ? 8 : parsedLimit;
+    return this.moviesService.suggestMovies(query, safeLimit);
+  }
+
+  @Get('resolve')
+  @ApiOperation({ summary: 'Resolve movie by title from DB, fallback to TMDB import' })
+  @ApiQuery({ name: 'query', required: true, type: String })
+  @ApiQuery({ name: 'externalId', required: false, type: String })
+  @ApiResponse({ status: 200, description: 'Movie resolved successfully' })
+  @ApiResponse({ status: 400, description: 'Query is required' })
+  @ApiResponse({ status: 404, description: 'Movie not found in DB and TMDB' })
+  async resolveMovie(
+    @Query('query') query: string,
+    @Query('externalId') externalId?: string,
+  ): Promise<MovieWithGenres> {
+    if (!query?.trim() && !externalId?.trim()) {
+      throw new BadRequestException('Query is required');
+    }
+
+    const movie = await this.moviesService.resolveMovieByQuery(query ?? '', externalId);
+    return toMovieWithGenres(movie as MovieRow);
   }
 
   @Get(':id')
@@ -89,10 +135,7 @@ export class MoviesController {
     if (!movie) {
       throw new NotFoundException(`Movie with ID ${id} not found`);
     }
-    return {
-      ...movie,
-      genres: splitGenres(movie.genre),
-    };
+    return toMovieWithGenres(movie as MovieRow);
   }
 
   @Patch(':id')
@@ -148,9 +191,6 @@ export class MoviesController {
   @ApiResponse({ status: 201, description: 'Movie imported successfully' })
   @ApiResponse({ status: 404, description: 'Movie not found in TMDB' })
   async importMovieFromTmdb(@Param('id') id: string): Promise<Movie> {
-    const movie = await this.moviesService.importMovieFromTmdb(+id);
-    // Fire-and-forget: rebuild similars for this movie
-    void this.recommendationsService.rebuildSimilarFor(movie.id, 20);
-    return movie;
+    return this.moviesService.importMovieFromTmdb(+id);
   }
 } 

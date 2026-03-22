@@ -24,9 +24,9 @@ export class CollectionsController {
 
   @Get('new-movies')
   async getNewMovies() {
-    this.logger.log('Getting new movies');
+    this.logger.log('Getting hot new releases (release year + recent review buzz)');
     const movies = await this.moviesService.getNewMovies();
-    this.logger.log(`Found ${movies.length} new movies`);
+    this.logger.log(`Found ${movies.length} hot new releases`);
     return movies;
   }
 
