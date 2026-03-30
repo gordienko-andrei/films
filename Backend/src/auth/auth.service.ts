@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
@@ -32,11 +32,14 @@ export class AuthService {
   }
 
   async register(userData: { email: string; password: string; name: string }): Promise<{ access_token: string; user: UserWithoutPassword }> {
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    const existing = await this.usersService.findByEmail(userData.email);
+    if (existing) {
+      throw new ConflictException('User with this email already exists');
+    }
     const user = await this.usersService.create({
       email: userData.email,
-      password: hashedPassword,
-      name: userData.name
+      password: userData.password,
+      name: userData.name,
     });
     
     // Исключаем пароль из ответа

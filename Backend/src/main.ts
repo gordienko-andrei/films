@@ -1,26 +1,30 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { ValidationPipe } from '@nestjs/common';
-// import { ReflectMetadata } from '@nestjs/common';
-import * as dotenv from 'dotenv';
-dotenv.config();
+import { ValidationPipe, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use(cookieParser());
+  const configService = app.get(ConfigService);
+  const logger = new Logger('Bootstrap');
+  const frontendUrl = configService.get<string>('FRONTEND_URL') ?? 'http://localhost:4200';
+  const port = Number(configService.get<string>('PORT') ?? 3000);
   
   // Enable CORS with specific configuration
   app.enableCors({
-    origin: ['http://localhost:4200'], // Angular dev server
+    origin: frontendUrl,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   });
   
   // Enable validation with transformation
   app.useGlobalPipes(new ValidationPipe({
-    transform: true, // Automatically transform payloads to DTO instances
-    whitelist: true, // Strip properties that don't have decorators
-    forbidNonWhitelisted: true, // Throw error if non-whitelisted properties are present
+    transform: true,
+    whitelist: true, 
+    forbidNonWhitelisted: true, 
   }));
   
   // Swagger configuration
@@ -34,7 +38,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
   
-  await app.listen(3000);
-  console.log('Application is running on: http://localhost:3000');
+  await app.listen(port);
+  logger.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap(); 
