@@ -7,7 +7,8 @@ import { MoviesService } from '../../services/movies.service';
 import { catchError, EMPTY, take, tap } from 'rxjs';
 import { MovieSuggestionItem } from '../../interfaces/movie.interface';
 import { MessageService } from 'primeng/api';
-import { ToastModule } from 'primeng/toast';
+import { SessionService } from '../../services/session.service';
+import { LoginService } from '../../pages/login/login.service';
 
 @Component({
   selector: 'app-navbar',
@@ -17,13 +18,13 @@ import { ToastModule } from 'primeng/toast';
     RouterModule, 
     ReactiveFormsModule, 
     AutoCompleteModule,
-    ToastModule
   ],
-  providers: [MessageService],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss'
 })
 export class NavbarComponent {
+  readonly session = inject(SessionService);
+  private loginService = inject(LoginService);
   private router = inject(Router);
   private fb = inject(NonNullableFormBuilder);
   private moviesService = inject(MoviesService);
@@ -46,6 +47,20 @@ export class NavbarComponent {
 
   loginUser() {
     this.router.navigate(['/login']);
+  }
+
+  logout() {
+    this.loginService
+      .logout()
+      .pipe(
+        take(1),
+        tap(() => this.router.navigate(['/'])),
+        catchError(() => {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Logout failed' });
+          return EMPTY;
+        }),
+      )
+      .subscribe();
   }
 
   onAutocompletePanelShow(): void {

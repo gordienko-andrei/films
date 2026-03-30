@@ -4,10 +4,13 @@ import { FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } fr
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { LoginService } from '../login.service';
-import { take, tap } from 'rxjs/operators';
+import { Router } from '@angular/router';
+import { catchError, take, tap } from 'rxjs/operators';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PasswordModule } from 'primeng/password';
+import { EMPTY } from 'rxjs';
+import { MessageService } from 'primeng/api';
 
 enum AuthorizationType {
   LOGIN = 'login',
@@ -29,6 +32,8 @@ export class LoginComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
   private loginService = inject(LoginService);
+  private messageService = inject(MessageService);
+  private router = inject(Router);
 
   stateOptions: { label: string; value: AuthorizationType }[] = [
     { label: 'Login', value: AuthorizationType.LOGIN },
@@ -76,19 +81,17 @@ export class LoginComponent implements OnInit {
     }
     const {email, password} = this.loginForm.getRawValue();
 
-    this.loginService.login(email, password)
-      .pipe(take(1))
-      .subscribe({
-        next: () => {
-          console.log('Login successful');
-          // Токен уже сохранен в сервисе
-          // Можно добавить перенаправление: this.router.navigate(['/dashboard']);
-        },
-        error: (error) => {
-          console.error('Login failed:', error);
-          // TODO: Показать ошибку пользователю
-        }
-      });
+    this.loginService
+      .login(email, password)
+      .pipe(
+        take(1),
+        tap(() => this.router.navigate(['/'])),
+        catchError(() => {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Login failed' });
+          return EMPTY;
+        }),
+      )
+      .subscribe();
   }
 
   register() {
@@ -98,18 +101,17 @@ export class LoginComponent implements OnInit {
 
     const {name, email, password} = this.registerForm.getRawValue();
 
-    this.loginService.register(name, email, password)
+    this.loginService
+      .register(name, email, password)
       .pipe(take(1))
       .subscribe({
-        next: (response) => {
-          console.log('Registration successful, user automatically logged in', response.user);
-          // Токен уже сохранен в сервисе
-          // Можно добавить перенаправление: this.router.navigate(['/dashboard']);
-        },
-        error: (error) => {
-          console.error('Registration failed:', error);
-          // TODO: Показать ошибку пользователю
-        }
+        next: () => this.router.navigate(['/']),
+        error: () =>
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Registration failed',
+          }),
       });
   }
 }

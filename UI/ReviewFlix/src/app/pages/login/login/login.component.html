@@ -13,13 +13,14 @@
 
             <ng-template pTemplate="body">
                 @if (authType() === AuthorizationType.LOGIN) {
-                    <form [formGroup]="loginForm" class="flex flex-column gap-2">
-                        <div class="flex flex-column gap-2">
+                    <form [formGroup]="loginForm" class="flex flex-column gap-2 w-full">
+                        <div class="flex flex-column gap-2 w-full">
                             <label for="email">Email</label>
                             <input 
                                 type="email" 
                                 pInputText 
                                 id="email" 
+                                class="w-full"
                                 formControlName="email"
                             />
                         </div>
@@ -27,35 +28,41 @@
                             <label for="password">Password</label>
                             <p-password 
                                 formControlName="password" 
-                                id="password" 
-                                class="w-full"
+                                inputId="password"
+                                [fluid]="true"
                                 [feedback]="false"
                                 [toggleMask]="true" />
                         </div>
                     </form>
                 } @else {
-                    <form [formGroup]="registerForm" class="flex flex-column gap-2">
-                        <div class="flex flex-column gap-2">
+                    <form [formGroup]="registerForm" class="flex flex-column gap-2 w-full">
+                        <div class="flex flex-column gap-2 w-full">
                             <label for="name">Name</label>
                             <input 
                                 type="text" 
                                 pInputText 
                                 id="name" 
+                                class="w-full"
                                 formControlName="name"
                             />
                         </div>
-                        <div class="flex flex-column gap-2">
+                        <div class="flex flex-column gap-2 w-full">
                             <label for="email">Email</label>
                             <input 
                                 type="email" 
                                 pInputText 
                                 id="email" 
+                                class="w-full"
                                 formControlName="email"
                             />
                         </div>
-                        <div class="flex flex-column gap-2">
-                            <label for="password">Password</label>
-                            <p-password formControlName="password" id="password" [toggleMask]="true" />
+                        <div class="flex flex-column gap-2 w-full">
+                            <label for="password-register">Password</label>
+                            <p-password
+                                formControlName="password"
+                                inputId="password-register"
+                                [fluid]="true"
+                                [toggleMask]="true" />
                         </div>
                     </form>
                 }

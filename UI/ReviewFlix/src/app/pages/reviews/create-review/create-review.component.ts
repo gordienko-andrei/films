@@ -13,7 +13,6 @@ import { AccordionModule } from 'primeng/accordion';
 import { ReviewService } from '../review.service';
 import { catchError, of, take, tap, forkJoin } from 'rxjs';
 import { CreateReview } from '../../../interfaces/createReview.interface';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { ReviewCriterionTemplate, ReviewTag } from '../../../interfaces/review.interface';
 
@@ -31,10 +30,8 @@ import { ReviewCriterionTemplate, ReviewTag } from '../../../interfaces/review.i
     InputTextModule, 
     TextareaModule, 
     ReactiveFormsModule, 
-    AccordionModule, 
-    ToastModule
+    AccordionModule,
   ],
-  providers: [MessageService],
   templateUrl: './create-review.component.html',
   styleUrl: './create-review.component.scss'
 })

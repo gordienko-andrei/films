@@ -3,7 +3,6 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Movie, MovieSuggestionItem } from '../interfaces/movie.interface';
 import { Review } from '../interfaces/review.interface';
-import { User } from '../interfaces/user.interface';
 import { Observable, tap } from 'rxjs';
 
 @Injectable({
@@ -33,7 +32,7 @@ export class MoviesService {
   }
 
   getMovie(id: string): Observable<Movie> {
-    return this.http.get<Movie>(`http://localhost:3000/movies/${id}`).pipe(
+    return this.http.get<Movie>(this.getUrl(`/movies/${id}`)).pipe(
       tap({
         next: (movie) => console.log('Received movie:', movie),
         error: (error) => console.error('Error fetching movie:', error)
@@ -43,12 +42,12 @@ export class MoviesService {
 
   // Метод для получения рекомендаций для фильма по его id
   getSimilarMovies(id: string): Observable<Movie[]> {
-    return this.http.get<Movie[]>(`http://localhost:3000/recommendations/similar/${id}`);
+    return this.http.get<Movie[]>(this.getUrl(`/recommendations/similar/${id}`));
   }
 
   // Методы для работы с коллекциями фильмов
   getRecentlyDiscussed(): Observable<Movie[]> {
-    return this.http.get<Movie[]>('http://localhost:3000/collections/recently-discussed').pipe(
+    return this.http.get<Movie[]>(this.getUrl('/collections/recently-discussed')).pipe(
       tap({
         next: (movies) => console.log('Received recently discussed movies:', movies),
         error: (error) => console.error('Error fetching recently discussed movies:', error)
@@ -57,7 +56,7 @@ export class MoviesService {
   }
 
   getNewMovies(): Observable<Movie[]> {
-    return this.http.get<Movie[]>('http://localhost:3000/collections/new-movies').pipe(
+    return this.http.get<Movie[]>(this.getUrl('/collections/new-movies')).pipe(
       tap({
         next: (movies) => console.log('Received new movies:', movies),
         error: (error) => console.error('Error fetching new movies:', error)
@@ -66,7 +65,7 @@ export class MoviesService {
   }
 
   getTrending(): Observable<Movie[]> {
-    return this.http.get<Movie[]>('http://localhost:3000/collections/trending').pipe(
+    return this.http.get<Movie[]>(this.getUrl('/collections/trending')).pipe(
       tap({
         next: (movies) => console.log('Received trending movies:', movies),
         error: (error) => console.error('Error fetching trending movies:', error)
@@ -95,11 +94,6 @@ export class MoviesService {
   // Методы для работы с рейтингами
   getRatings(): Observable<number[]> {
     return this.http.get<number[]>(this.getUrl('/ratings'));
-  }
-
-  // Методы для работы с пользователями
-  getCurrentUser(): Observable<User> {
-    return this.http.get<User>(this.getUrl('/users/me'));
   }
 
   searchMovies(query: string, externalId?: string): Observable<Movie> {

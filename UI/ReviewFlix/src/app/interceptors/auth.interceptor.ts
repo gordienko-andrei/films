@@ -1,18 +1,22 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { LoginService } from '../pages/login/login.service';
-import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 
-export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const loginService = inject(LoginService);
-  const token = loginService.getToken();
-
-  if(token) {
-    const clonedReq = req.clone({
-      headers: req.headers.set('Authorization', `Bearer ${token}`),
-    });
-    return next(clonedReq);
+function shouldSendCredentials(requestUrl: string, apiUrl: string): boolean {
+  if (apiUrl.startsWith('http://') || apiUrl.startsWith('https://')) {
+    return requestUrl.startsWith(apiUrl);
   }
+  try {
+    const path = new URL(requestUrl).pathname;
+    return path.startsWith(apiUrl);
+  } catch {
+    return false;
+  }
+}
 
-  return next(req);
+/** HttpOnly JWT в куке: браузер сам отправит её при withCredentials. */
+export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  if (!shouldSendCredentials(req.url, environment.apiUrl)) {
+    return next(req);
+  }
+  return next(req.clone({ withCredentials: true }));
 };

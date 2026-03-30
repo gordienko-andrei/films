@@ -1,63 +1,43 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Observable, tap } from 'rxjs';
+import { Observable, map, switchMap, tap } from 'rxjs';
+import { SessionService, SessionUser } from '../../services/session.service';
 
-export interface UserWithoutPassword {
-  id: number;
-  email: string;
-  name: string | null;
-  role: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export type UserWithoutPassword = SessionUser;
 
 export interface AuthResponse {
   access_token: string;
-  user?: UserWithoutPassword;
+  user?: SessionUser;
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class LoginService {
-  private apiUrl = environment.apiUrl;
-  private readonly TOKEN_KEY = 'access_token';
-
-  constructor(private http: HttpClient) { }
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = environment.apiUrl;
+  private readonly session = inject(SessionService);
 
   login(email: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, { email, password })
-      .pipe(
-        tap(response => {
-          this.setToken(response.access_token);
-        })
-      );
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/auth/login`, { email, password })
+      .pipe(switchMap((res) => this.session.refresh().pipe(map(() => res))));
   }
 
   register(name: string, email: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, { name, email, password })
-      .pipe(
-        tap(response => {
-          this.setToken(response.access_token);
-        })
-      );
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/auth/register`, { name, email, password })
+      .pipe(switchMap((res) => this.session.refresh().pipe(map(() => res))));
   }
 
-  // Методы для работы с токеном
-  setToken(token: string): void {
-    localStorage.setItem(this.TOKEN_KEY, token);
-  }
-
-  getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
-  }
-
-  removeToken(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
+  logout(): Observable<{ ok: boolean }> {
+    return this.http.post<{ ok: boolean }>(`${this.apiUrl}/auth/logout`, {}).pipe(
+      tap(() => this.session.clear()),
+    );
   }
 
   isAuthenticated(): boolean {
-    return !!this.getToken();
+    return this.session.isAuthenticated();
   }
 }

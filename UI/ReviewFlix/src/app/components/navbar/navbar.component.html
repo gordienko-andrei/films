@@ -35,12 +35,20 @@
   </div>
 
   <div class="navbar__actions">
-    <p-button
-      icon="pi pi-user"
-      label="Login"
-      (onClick)="loginUser()">
-    </p-button>
+    @if (session.user(); as u) {
+      <span class="navbar__user-email">{{ u.name ?? u.email }}</span>
+      <p-button
+        icon="pi pi-sign-out"
+        label="Logout"
+        [text]="true"
+        (onClick)="logout()">
+      </p-button>
+    } @else {
+      <p-button
+        icon="pi pi-user"
+        label="Login"
+        (onClick)="loginUser()">
+      </p-button>
+    }
   </div>
 </nav>
-
-<p-toast />
