@@ -5,9 +5,21 @@
   }
 .main-content {
     flex: 1;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
     background-color: #121212;
     color: #fff;
-    padding: 2rem;
+    /* Вертикаль чуть плотнее горизонтали; на мобильных — меньше поля, больше места контенту */
+    padding: 0.75rem 0.875rem 1.25rem;
+
+    @media (min-width: 640px) {
+        padding: 1rem 1.25rem 1.5rem;
+    }
+
+    @media (min-width: 1024px) {
+        padding: 1.25rem 2rem 2rem;
+    }
 }
  
 .debug-bar {

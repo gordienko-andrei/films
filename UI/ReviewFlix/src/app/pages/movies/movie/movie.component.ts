@@ -11,11 +11,17 @@ import { MovieCarouselComponent } from '../../../components/movie-carousel/movie
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReviewListComponent } from '../../reviews/review-list/review-list.component';
 import { CardModule } from 'primeng/card';
+import { CarouselModule } from 'primeng/carousel';
+import {
+  POSTER_CAROUSEL_NUM_SCROLL,
+  POSTER_CAROUSEL_NUM_VISIBLE,
+  posterCarouselResponsiveOptions,
+} from '../../../constants/poster-carousel.constants';
 
 @Component({
   selector: 'app-movie',
   standalone: true,
-  imports: [CommonModule, EmojiRatingComponent, ChipModule, MovieCarouselComponent, ReviewListComponent, CardModule],
+  imports: [CommonModule, EmojiRatingComponent, ChipModule, MovieCarouselComponent, ReviewListComponent, CardModule, CarouselModule],
   templateUrl: './movie.component.html',
   styleUrl: './movie.component.scss'
 })
@@ -29,7 +35,10 @@ export class MovieComponent implements OnInit {
   public isLoading = false;
   public recommendations: Movie[] = [];
 
-  /** Удобно для шаблона: типизированные credits с API */
+  readonly posterCarouselNumVisible = POSTER_CAROUSEL_NUM_VISIBLE;
+  readonly posterCarouselNumScroll = POSTER_CAROUSEL_NUM_SCROLL;
+  readonly posterCarouselResponsiveOptions = posterCarouselResponsiveOptions;
+
   get credits(): MovieCreditsSnapshot | null {
     const raw = this.movie?.credits;
     if (!raw || typeof raw !== 'object') {

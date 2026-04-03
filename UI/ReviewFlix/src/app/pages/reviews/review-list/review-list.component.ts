@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { Review } from '../../../interfaces/review.interface';
 import { ReviewService } from '../../reviews/review.service'
 import { take, tap } from 'rxjs';
@@ -12,15 +12,25 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import { TagModule } from 'primeng/tag';
 import { NgClass } from '@angular/common';
+import { ReviewComponent } from '../review/review.component';
 
 @Component({
   selector: 'app-review-list',
   standalone: true,
-  imports: [CardModule, CreateReviewComponent, InplaceModule, ButtonModule, DatePipe, RatingModule, ReactiveFormsModule, FormsModule, TagModule, NgClass],
+  imports: [
+    CardModule, 
+    CreateReviewComponent, 
+    InplaceModule, 
+    ButtonModule, 
+    RatingModule, 
+    ReactiveFormsModule, 
+    FormsModule, 
+    TagModule, 
+    ReviewComponent],
   templateUrl: './review-list.component.html',
   styleUrl: './review-list.component.scss'
 })
-export class ReviewListComponent implements OnInit{
+export class ReviewListComponent implements OnInit, OnChanges {
   @Input() movieId!: string;
   private reviewService = inject(ReviewService);
   private cdr = inject(ChangeDetectorRef);
@@ -30,6 +40,13 @@ export class ReviewListComponent implements OnInit{
 
   ngOnInit(): void {
     this.getReviews();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['movieId']) {
+      this.movieId = changes['movieId'].currentValue;
+      this.getReviews();
+    }
   }
 
   getReviews(): void {
@@ -63,5 +80,6 @@ export class ReviewListComponent implements OnInit{
 
   hideCreateReview(): void {
     this.createNewReviewVisible = false;
+    this.getReviews();
   }
 }

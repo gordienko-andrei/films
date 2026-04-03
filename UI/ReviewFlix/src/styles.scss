@@ -22,6 +22,50 @@ body {
     min-height: 100vh;
 }
 
+/* Карусели постеров: расстояние между слайдами */
+.poster-carousel .p-carousel-content {
+    gap: 0.5rem;
+}
+
+/* Карусели постеров: градиент справа намекает, что ленту можно листать */
+.poster-carousel .p-carousel-viewport {
+    position: relative;
+}
+
+.poster-carousel .p-carousel-viewport::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(48px, 14vw);
+    pointer-events: none;
+    background: linear-gradient(
+        to left,
+        var(--p-card-background, var(--p-content-background, #fff)) 0%,
+        transparent 100%
+    );
+}
+
+@media (max-width: 767px) {
+    .poster-carousel .p-carousel-prev-button,
+    .poster-carousel .p-carousel-next-button {
+        display: none !important;
+    }
+
+    .poster-carousel .p-carousel-content {
+        gap: 0.9rem;
+    }
+
+    .p-card .p-card-body {
+        padding: 0.5rem 0.65rem;
+    }
+
+    .p-card .p-card-header {
+        padding: 0.55rem 0.65rem;
+    }
+}
+
 /* PrimeNG Autocomplete: панель часто вешается на body — стили глобальные */
 .p-autocomplete-overlay.navbar-search-ac-panel,
 .navbar-search-ac-panel.p-autocomplete-overlay {

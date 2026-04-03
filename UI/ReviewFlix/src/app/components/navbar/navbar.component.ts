@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, ElementRef, inject } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
+import { DrawerModule } from 'primeng/drawer';
 import { Router, RouterModule } from '@angular/router';
 import { FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AutoCompleteCompleteEvent, AutoCompleteModule, AutoCompleteSelectEvent } from 'primeng/autocomplete';
@@ -14,9 +15,10 @@ import { LoginService } from '../../pages/login/login.service';
   selector: 'app-navbar',
   standalone: true,
   imports: [
-    ButtonModule, 
-    RouterModule, 
-    ReactiveFormsModule, 
+    ButtonModule,
+    DrawerModule,
+    RouterModule,
+    ReactiveFormsModule,
     AutoCompleteModule,
   ],
   templateUrl: './navbar.component.html',
@@ -39,17 +41,30 @@ export class NavbarComponent {
   /** Ширина выпадающего списка = ширина поля (актуально при appendTo body) */
   autocompletePanelStyle: Record<string, string> = {};
 
+  drawerOpen = false;
+
+  /** Ширина выезжающей панели справа */
+  readonly drawerPanelStyle: Record<string, string> = {
+    width: 'min(22rem, calc(100vw - 1.25rem))',
+  };
+
   constructor() {
     this.searchForm = this.fb.group({
       search: ['', [Validators.required, Validators.minLength(3)]],
     });
   }
 
+  closeDrawer(): void {
+    this.drawerOpen = false;
+  }
+
   loginUser() {
+    this.closeDrawer();
     this.router.navigate(['/login']);
   }
 
   logout() {
+    this.closeDrawer();
     this.loginService
       .logout()
       .pipe(

@@ -1,0 +1,80 @@
+@if (review(); as review) {
+    <p-card styleClass="review-item">
+        <ng-template pTemplate="title">
+            <div class="review-item__head">
+                <div class="review-item__meta">
+                    <span class="review-item__author">{{ review.user.name ?? 'User' }}</span>
+                    <span class="review-item__date">{{ review.createdAt | date:'dd.MM.yyyy' }}</span>
+                </div>
+                <div class="review-item__rating-wrap">
+                    <p-rating [stars]="10" [readonly]="true" [ngModel]="review.rating"></p-rating>
+                </div>
+            </div>
+        </ng-template>
+
+        <div class="review-item__body">
+            <p
+                class="review-item__text"
+                [class.review-item__text--clamped]="!fullReviewVisible()">
+                {{ review.content }}
+            </p>
+
+            @if (fullReviewVisible()) {
+                @if (review.pros.length) {
+                    <section class="review-item__section" aria-label="Pros">
+                        <h4 class="review-item__section-title">Pros</h4>
+                        <ul class="review-item__list">
+                            @for (pro of review.pros; track $index) {
+                                <li>{{ pro }}</li>
+                            }
+                        </ul>
+                    </section>
+                }
+                @if (review.cons.length) {
+                    <section class="review-item__section" aria-label="Cons">
+                        <h4 class="review-item__section-title">Cons</h4>
+                        <ul class="review-item__list">
+                            @for (con of review.cons; track $index) {
+                                <li>{{ con }}</li>
+                            }
+                        </ul>
+                    </section>
+                }
+                @if (review.tags.length) {
+                    <section class="review-item__section" aria-label="Tags">
+                        <h4 class="review-item__section-title">Tags</h4>
+                        <div class="review-item__tags">
+                            @for (tag of review.tags; track tag.id) {
+                                <p-tag [value]="tag.name"></p-tag>
+                            }
+                        </div>
+                    </section>
+                }
+                @if (review.criteria.length) {
+                    <section class="review-item__section" aria-label="Criteria">
+                        <h4 class="review-item__section-title">Criteria</h4>
+                        <div class="review-item__criteria">
+                            @for (criterion of review.criteria; track criterion.id) {
+                                <div class="review-item__criterion">
+                                    <span class="review-item__criterion-name">{{ criterion.template?.name ?? '—' }}</span>
+                                    <p-rating [stars]="10" [readonly]="true" [ngModel]="criterion.score"></p-rating>
+                                </div>
+                            }
+                        </div>
+                    </section>
+                }
+            }
+
+            <div class="review-item__actions">
+                <p-button
+                    [label]="fullReviewVisible() ? 'Show less' : 'Show more'"
+                    [icon]="fullReviewVisible() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                    iconPos="right"
+                    [text]="true"
+                    size="small"
+                    (onClick)="toggleFullReview()">
+                </p-button>
+            </div>
+        </div>
+    </p-card>
+}

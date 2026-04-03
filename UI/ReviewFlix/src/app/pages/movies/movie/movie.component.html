@@ -1,27 +1,29 @@
 <div class="movie-wrapper">
     <p-card>
         <div class="movie">
-            <div class="movie__media">
-                <img [src]="movie?.posterUrl" [alt]="movie?.title" />
+            <div class="movie__hero">
+                <h1 class="movie__h1">
+                    {{ movie?.title }} ({{ movie?.year }})
+                    @if (isTv) {
+                        <span class="movie__badge-tv">TV</span>
+                    }
+                </h1>
+                <div class="movie__media">
+                    <img [src]="movie?.posterUrl" [alt]="movie?.title ?? ''" loading="lazy" />
+                </div>
             </div>
             <div class="movie-info">
-                <div class="movie__title">
-                    <h1>
-                        {{ movie?.title }} ({{ movie?.year }})
-                        @if (isTv) {
-                            <span class="movie__badge-tv">TV</span>
-                        }
-                    </h1>
-                    <div class="movie__menu-items">
-                        <span>🎭 Genre:</span>
+                <div class="movie__meta">
+                    <div class="movie__menu-items movie__menu-items--genres">
+                        <span class="movie__label">🎭 Genre:</span>
                         <div class="movie__genres">
                             @for(genre of movie?.genres; track $index) {
                                 <p-chip>{{ genre }}</p-chip>
                             }
                         </div>
                     </div>
-                    <p class="movie__menu-items"><span>🎬 Directed by</span> {{ movie?.director }}</p>
-                    <p class="movie__menu-items"><span>📝 Description:</span> {{ movie?.description }}</p>
+                    <p class="movie__menu-items"><span class="movie__label">🎬 Directed by</span> {{ movie?.director }}</p>
+                    <p class="movie__menu-items movie__description"><span class="movie__label">📝 Description:</span> {{ movie?.description }}</p>
                 </div>
                 <div class="emojis-block">
                     <app-emoji-rating [movieId]="movieId"></app-emoji-rating>
@@ -51,32 +53,29 @@
     @if (credits?.cast?.length) {
         <p-card styleClass="movie-credits-card">
             <h2 class="movie-credits__heading">Cast</h2>
-            <div class="movie-credits__cast">
-                @for (c of credits!.cast!; track c.id ?? c.name) {
-                    <div class="movie-credits__person">
-                        @if (c.profileUrl) {
-                            <img [src]="c.profileUrl" [alt]="c.name" class="movie-credits__photo" />
-                        } @else {
-                            <div class="movie-credits__photo movie-credits__photo--placeholder"></div>
-                        }
-                        <div class="movie-credits__person-text">
-                            <span class="movie-credits__name">{{ c.name }}</span>
-                            @if (c.character) {
-                                <span class="movie-credits__role">{{ c.character }}</span>
-                            }
-                        </div>
-                    </div>
-                }
-            </div>
-        </p-card>
-    }
-
-    @if (credits?.crew?.length) {
-        <p-card styleClass="movie-credits-card">
-            <h2 class="movie-credits__heading">Crew</h2>
-            <div class="movie-credits__crew">
-                @for (m of credits!.crew!; track $index) {
-                    <p-chip [label]="m.name + ' — ' + m.job"></p-chip>
+            <div class="movie-credits__cast poster-carousel">
+                @for (carouselKey of [movieId]; track carouselKey) {
+                    <p-carousel
+                        [value]="credits!.cast!"
+                        [numVisible]="posterCarouselNumVisible"
+                        [numScroll]="posterCarouselNumScroll"
+                        [responsiveOptions]="posterCarouselResponsiveOptions"
+                        [circular]="true"
+                        [showIndicators]="false">
+                            <ng-template let-castMember pTemplate="item">
+                                <div class="movie-credits__person">
+                                    @if (castMember.profileUrl) {
+                                        <img [src]="castMember.profileUrl" [alt]="castMember.name" class="movie-credits__photo" />
+                                    } @else {
+                                        <div class="movie-credits__photo movie-credits__photo--placeholder"></div>
+                                    }
+                                    <span class="movie-credits__name">{{ castMember.name }}</span>
+                                    @if (castMember.character) {
+                                        <span class="movie-credits__role">{{ castMember.character }}</span>
+                                    }
+                                </div>
+                            </ng-template>
+                    </p-carousel>
                 }
             </div>
         </p-card>

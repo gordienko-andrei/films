@@ -3,6 +3,11 @@ import { CarouselModule } from 'primeng/carousel';
 import { Movie } from '../../interfaces/movie.interface';
 import { RouterModule } from '@angular/router';
 import { CardModule } from 'primeng/card';
+import {
+  POSTER_CAROUSEL_NUM_SCROLL,
+  POSTER_CAROUSEL_NUM_VISIBLE,
+  posterCarouselResponsiveOptions,
+} from '../../constants/poster-carousel.constants';
 
 @Component({
   selector: 'app-movie-carousel',
@@ -15,28 +20,9 @@ export class MovieCarouselComponent implements OnChanges {
   @Input() movies: Movie[] = [];
   @Input() title: string = "";
 
-  public responsiveOptions: any[] = [
-    {
-        breakpoint: '1400px',
-        numVisible: 2,
-        numScroll: 1
-    },
-    {
-        breakpoint: '1199px',
-        numVisible: 3,
-        numScroll: 1
-    },
-    {
-        breakpoint: '767px',
-        numVisible: 2,
-        numScroll: 1
-    },
-    {
-        breakpoint: '575px',
-        numVisible: 1,
-        numScroll: 1
-    }
-  ]
+  readonly posterCarouselNumVisible = POSTER_CAROUSEL_NUM_VISIBLE;
+  readonly posterCarouselNumScroll = POSTER_CAROUSEL_NUM_SCROLL;
+  readonly posterCarouselResponsiveOptions = posterCarouselResponsiveOptions;
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['title'] && changes['title'].currentValue !== changes['title'].previousValue) {

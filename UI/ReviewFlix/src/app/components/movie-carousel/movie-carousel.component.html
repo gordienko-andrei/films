@@ -1,12 +1,12 @@
 <p-card [header]="title">
-    <div class="recently__discussed-block">
-        <p-carousel 
-            [value]="movies" 
-            [numVisible]="6" 
-            [numScroll]="3" 
+    <div class="recently__discussed-block poster-carousel">
+        <p-carousel
+            [value]="movies"
+            [numVisible]="posterCarouselNumVisible"
+            [numScroll]="posterCarouselNumScroll"
+            [responsiveOptions]="posterCarouselResponsiveOptions"
             [circular]="true"
-            [showIndicators]="false"
-            [responsiveOptions]="responsiveOptions">
+            [showIndicators]="false">
                 <ng-template let-movie pTemplate="item">
                     <a class="carousel-item" [routerLink]="['/movie', movie.id]">
                         <div class="carousel-item__image">

@@ -1,7 +1,8 @@
 <nav class="navbar">
-  <a routerLink="/" class="logo-link">
+  <a routerLink="/" class="logo-link" aria-label="ReviewFlix — home">
     <span class="logo-text">
-      Review<span class="logo-highlight">Flix</span>
+      <span class="logo-text__full">Review<span class="logo-highlight">Flix</span></span>
+      <span class="logo-text__abbr" aria-hidden="true"><span class="logo-highlight">RF</span></span>
     </span>
   </a>
 
@@ -34,21 +35,97 @@
     </form>
   </div>
 
-  <div class="navbar__actions">
-    @if (session.user(); as u) {
-      <span class="navbar__user-email">{{ u.name ?? u.email }}</span>
-      <p-button
-        icon="pi pi-sign-out"
-        label="Logout"
-        [text]="true"
-        (onClick)="logout()">
-      </p-button>
-    } @else {
-      <p-button
-        icon="pi pi-user"
-        label="Login"
-        (onClick)="loginUser()">
-      </p-button>
-    }
+  <div class="navbar__trailing">
+    <div class="navbar__actions">
+      @if (session.user(); as u) {
+        <span class="navbar__user-email">{{ u.name ?? u.email }}</span>
+        <p-button
+          icon="pi pi-sign-out"
+          label="Logout"
+          [text]="true"
+          (onClick)="logout()">
+        </p-button>
+      } @else {
+        <p-button
+          icon="pi pi-user"
+          label="Login"
+          (onClick)="loginUser()">
+        </p-button>
+      }
+    </div>
+
+    <p-button
+      type="button"
+      class="navbar__menu-btn"
+      icon="pi pi-bars"
+      [text]="true"
+      [rounded]="true"
+      ariaLabel="Menu"
+      (onClick)="drawerOpen = true">
+    </p-button>
   </div>
 </nav>
+
+<p-drawer
+  [(visible)]="drawerOpen"
+  position="right"
+  [modal]="true"
+  [blockScroll]="true"
+  [dismissible]="true"
+  [closeOnEscape]="true"
+  styleClass="nav-drawer-panel"
+  [style]="drawerPanelStyle">
+  <ng-template pTemplate="headless">
+    <div class="nav-drawer">
+      <div class="nav-drawer__header">
+        <span class="nav-drawer__brand">
+          Review<span class="logo-highlight">Flix</span>
+        </span>
+        <p-button
+          type="button"
+          icon="pi pi-times"
+          [rounded]="true"
+          [text]="true"
+          ariaLabel="Close menu"
+          (onClick)="closeDrawer()">
+        </p-button>
+      </div>
+
+      <div class="nav-drawer__scroll">
+        <nav class="nav-drawer__nav" aria-label="Main">
+          <ul class="nav-drawer__list">
+            <li>
+              <a routerLink="/" class="nav-drawer__link" (click)="closeDrawer()">
+                <i class="pi pi-home" aria-hidden="true"></i>
+                <span>Home</span>
+              </a>
+            </li>
+            @if (!session.user()) {
+              <li>
+                <a routerLink="/login" class="nav-drawer__link" (click)="closeDrawer()">
+                  <i class="pi pi-sign-in" aria-hidden="true"></i>
+                  <span>Login</span>
+                </a>
+              </li>
+            }
+            <li class="nav-drawer__placeholder">
+              <span class="nav-drawer__muted">More links will go here</span>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+      @if (session.user(); as u) {
+        <div class="nav-drawer__footer">
+          <span class="nav-drawer__user">{{ u.name ?? u.email }}</span>
+          <p-button
+            label="Logout"
+            icon="pi pi-sign-out"
+            [text]="true"
+            (onClick)="logout()">
+          </p-button>
+        </div>
+      }
+    </div>
+  </ng-template>
+</p-drawer>
