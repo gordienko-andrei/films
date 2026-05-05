@@ -2,7 +2,8 @@ import { Component, inject, Input, OnInit } from '@angular/core';
 import { ChipModule } from 'primeng/chip';
 import { Emoji } from '../../../interfaces/emoji.interface';
 import { EmojiService } from './emoji.service';
-import { forkJoin, take, tap, catchError } from 'rxjs';
+import { forkJoin, take, tap, catchError, of, finalize, EMPTY } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -22,41 +23,39 @@ export class EmojiRatingComponent implements OnInit {
   public error: string | null = null;
 
   ngOnInit() {
+    if (!this.movieId) return;
     this.loadEmojis();
   }
 
   loadEmojis() {
     this.isLoading = true;
     this.error = null;
-    // Загружаем одновременно все эмоции и выбранные пользователем
+
     forkJoin({
       emotions: this.emojiService.loadAllEmojisForFilm(this.movieId).pipe(
-        catchError(err => {
-          console.error('Failed to load emotions:', err);
+        catchError(() => {
           this.error = 'Failed to load emotions. Please check if the API server is running.';
-          return [];
+          return of([]);
         })
       ),
       userEmotions: this.emojiService.getUserEmotionsForFilm(this.movieId).pipe(
-        catchError(err => {
-          console.error('Failed to load user emotions:', err);
-          return [];
+        catchError(() => {
+          return of([]);
         })
       )
-    }).pipe(
+    })
+    .pipe(
       tap(({ emotions, userEmotions }) => {
         this.emotions = emotions;
         this.selectedEmotionIds = new Set(userEmotions);
       }),
-      take(1)
-    ).subscribe({
-      next: () => this.isLoading = false,
-      error: (err) => {
-        console.error('Failed to load data:', err);
-        this.error = 'Failed to load data. Please check if the API server is running.';
-        this.isLoading = false;
-      }
-    });
+      catchError(() => {
+        return EMPTY;
+      }),
+      take(1),
+      finalize(() => this.isLoading = false)
+    )
+    .subscribe();
   }
 
   isSelected(id: number): boolean {
@@ -68,19 +67,26 @@ export class EmojiRatingComponent implements OnInit {
     
     this.isLoading = true;
     this.emojiService.toggleEmotion(this.movieId, id)
-      .pipe(take(1))
-      .subscribe({
-        next: () => {
+      .pipe(take(1),
+        tap(() => {
+          this.error = null;
           if (this.selectedEmotionIds.has(id)) {
             this.selectedEmotionIds.delete(id);
           } else {
             this.selectedEmotionIds.add(id);
           }
           this.loadEmojis();
-        },
-        error: () => {
-          this.isLoading = false;
-        }
-      });
+        }),
+        catchError((err: HttpErrorResponse) => {
+            if (err.status === 401 || err.status === 403) {
+              this.error = 'Please sign in to react to this movie.';
+            } else {
+              this.error = 'Failed to save reaction. Please try again.';
+            }
+          return EMPTY;
+        }),
+        finalize(() => this.isLoading = false)
+      )
+      .subscribe();
   }
 }
