@@ -10,12 +10,20 @@ async function bootstrap() {
   app.use(cookieParser());
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
-  const frontendUrl = configService.get<string>('FRONTEND_URL') ?? 'http://localhost:4200';
+  const isProduction = configService.get<string>('NODE_ENV') === 'production';
+  const frontendUrl = configService.get<string>('FRONTEND_URL');
+  if (isProduction && !frontendUrl) {
+    throw new Error('FRONTEND_URL environment variable is required in production');
+  }
+  const allowedOrigins = (frontendUrl ?? 'http://localhost:4200')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
   const port = Number(configService.get<string>('PORT') ?? 3000);
   
   // Enable CORS with specific configuration
   app.enableCors({
-    origin: frontendUrl,
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   });
@@ -27,16 +35,19 @@ async function bootstrap() {
     forbidNonWhitelisted: true, 
   }));
   
-  // Swagger configuration
-  const config = new DocumentBuilder()
-    .setTitle('Film Website API')
-    .setDescription('The film website API description')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  const swaggerEnabled =
+    !isProduction || configService.get<string>('ENABLE_SWAGGER') === 'true';
+  if (swaggerEnabled) {
+    const config = new DocumentBuilder()
+      .setTitle('Film Website API')
+      .setDescription('The film website API description')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document);
+  }
   
   await app.listen(port);
   logger.log(`Application is running on: ${await app.getUrl()}`);

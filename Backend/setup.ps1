@@ -1,12 +1,15 @@
 # Install dependencies
 npm install
 
-# Create PostgreSQL database
-$env:PGPASSWORD = "postgres"
-psql -U postgres -c "CREATE DATABASE film_review_db;"
+# Copy environment template and fill in real values
+if (!(Test-Path .env)) {
+  Copy-Item .env.example .env
+  Write-Host "Created .env from .env.example. Update secrets before starting the app."
+}
 
-# Run migrations
-npm run typeorm migration:run
+# Generate Prisma client and run development migrations
+npx prisma generate
+npx prisma migrate dev
 
 # Start the server
 npm run start:dev 

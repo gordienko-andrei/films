@@ -54,25 +54,23 @@ export class EmotionsService {
     filmId: string,
     emotionId: number,
   ): Promise<void> {
-    // Check if film exists
-    const film = await this.prisma.$queryRaw<any[]>`
-      SELECT id FROM movies WHERE id = ${filmId}
-    `;
-    if (!film.length) {
+    const film = await this.prisma.movie.findUnique({
+      where: { id: filmId },
+      select: { id: true },
+    });
+    if (!film) {
       throw new NotFoundException(`Film with ID ${filmId} not found`);
     }
 
-    // Check if emotion exists
-    const emotion = await this.prisma.$queryRaw<any[]>`
-      SELECT id FROM emotions WHERE id = ${emotionId}
-    `;
-    if (!emotion.length) {
+    const emotion = await this.prisma.emotion.findUnique({
+      where: { id: emotionId },
+      select: { id: true },
+    });
+    if (!emotion) {
       throw new NotFoundException(`Emotion with ID ${emotionId} not found`);
     }
 
-    // Start transaction
     await this.prisma.$transaction(async (prisma) => {
-      // Check if user already reacted with this emotion
       const existingEmotion = await prisma.$queryRaw<any[]>`
         SELECT * FROM user_emotions
         WHERE "userId" = ${userId}
@@ -81,7 +79,6 @@ export class EmotionsService {
       `;
 
       if (existingEmotion.length) {
-        // Remove the emotion if it exists
         await prisma.$executeRaw`
           DELETE FROM user_emotions
           WHERE "userId" = ${userId}
@@ -89,7 +86,6 @@ export class EmotionsService {
           AND "emotionId" = ${emotionId}
         `;
 
-        // Decrement the count in film_emotions
         await prisma.$executeRaw`
           UPDATE film_emotions
           SET count = count - 1
@@ -97,13 +93,11 @@ export class EmotionsService {
           AND "emotionId" = ${emotionId}
         `;
       } else {
-        // Add new emotion
         await prisma.$executeRaw`
           INSERT INTO user_emotions ("userId", "filmId", "emotionId", "createdAt")
           VALUES (${userId}, ${filmId}, ${emotionId}, NOW())
         `;
 
-        // Increment or create count in film_emotions
         await prisma.$executeRaw`
           INSERT INTO film_emotions ("filmId", "emotionId", count)
           VALUES (${filmId}, ${emotionId}, 1)

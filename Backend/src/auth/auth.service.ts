@@ -41,17 +41,14 @@ export class AuthService {
       password: userData.password,
       name: userData.name,
     });
-    
-    // Исключаем пароль из ответа
-    const { password, ...userWithoutPassword } = user;
-    
+
     // Автоматически логиним пользователя после регистрации
     const payload = { email: user.email, sub: user.id };
     const access_token = this.jwtService.sign(payload);
     
     return {
       access_token,
-      user: userWithoutPassword
+      user,
     };
   }
 } 

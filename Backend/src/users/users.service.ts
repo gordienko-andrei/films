@@ -1,14 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import type { User } from '@prisma/client';
+
+type SafeUser = Omit<User, 'password'>;
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async create(userData: { email: string; password: string; name: string }) {
+  private toSafeUser(user: User): SafeUser {
+    const { password, ...safeUser } = user;
+    return safeUser;
+  }
+
+  async create(userData: { email: string; password: string; name: string }): Promise<SafeUser> {
     const hashedPassword = await bcrypt.hash(userData.password, 10);
-    return this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         email: userData.email,
         password: hashedPassword,
@@ -16,16 +24,19 @@ export class UsersService {
         role: 'USER'
       }
     });
+    return this.toSafeUser(user);
   }
 
-  async findAll() {
-    return this.prisma.user.findMany();
+  async findAll(): Promise<SafeUser[]> {
+    const users = await this.prisma.user.findMany();
+    return users.map((user) => this.toSafeUser(user));
   }
 
-  async findOne(id: number) {
-    return this.prisma.user.findUnique({
+  async findOne(id: number): Promise<SafeUser | null> {
+    const user = await this.prisma.user.findUnique({
       where: { id }
     });
+    return user ? this.toSafeUser(user) : null;
   }
 
   async findByEmail(email: string) {
@@ -34,16 +45,18 @@ export class UsersService {
     });
   }
 
-  async update(id: number, userData: { email?: string; name?: string }) {
-    return this.prisma.user.update({
+  async update(id: number, userData: { email?: string; name?: string }): Promise<SafeUser> {
+    const user = await this.prisma.user.update({
       where: { id },
       data: userData
     });
+    return this.toSafeUser(user);
   }
 
-  async remove(id: number) {
-    return this.prisma.user.delete({
+  async remove(id: number): Promise<SafeUser> {
+    const user = await this.prisma.user.delete({
       where: { id }
     });
+    return this.toSafeUser(user);
   }
 } 
