@@ -54,9 +54,9 @@ export interface Review {
   cons: string[];
   createdAt: string;
   updatedAt: string;
-  userId: number;
+  userId: number | null;
   movieId: string;
-  user: ReviewUser;
+  user: ReviewUser | null;
   criteria: ReviewCriteria[];
   tags: ReviewTag[];
   metadata: ReviewMetadata | null;

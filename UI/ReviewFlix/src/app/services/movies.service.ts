@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { Movie, MovieSuggestionItem } from '../interfaces/movie.interface';
+import { Movie, MovieSuggestionItem, MoodPick, GenrePick } from '../interfaces/movie.interface';
 import { Review } from '../interfaces/review.interface';
 import { Observable } from 'rxjs';
 
@@ -46,6 +46,46 @@ export class MoviesService {
 
   getPopular(): Observable<Movie[]> {
     return this.http.get<Movie[]>(this.getUrl('/collections/popular'));
+  }
+
+  getBecauseYouLiked(limit = 20): Observable<Movie[]> {
+    const params = new HttpParams().set('limit', String(limit));
+    return this.http.get<Movie[]>(this.getUrl('/collections/because-you-liked'), { params });
+  }
+
+  getTopRatedThisWeek(limit = 20, days = 7): Observable<Movie[]> {
+    const params = new HttpParams().set('limit', String(limit)).set('days', String(days));
+    return this.http.get<Movie[]>(this.getUrl('/collections/top-rated-this-week'), { params });
+  }
+
+  getMostDiscussed(limit = 20, days = 7): Observable<Movie[]> {
+    const params = new HttpParams().set('limit', String(limit)).set('days', String(days));
+    return this.http.get<Movie[]>(this.getUrl('/collections/most-discussed'), { params });
+  }
+
+  getMoodPicks(limit = 12, moods?: string): Observable<MoodPick[]> {
+    let params = new HttpParams().set('limit', String(limit));
+    if (moods?.trim()) {
+      params = params.set('moods', moods.trim());
+    }
+    return this.http.get<MoodPick[]>(this.getUrl('/collections/mood-picks'), { params });
+  }
+
+  getHiddenGems(limit = 20): Observable<Movie[]> {
+    const params = new HttpParams().set('limit', String(limit));
+    return this.http.get<Movie[]>(this.getUrl('/collections/hidden-gems'), { params });
+  }
+
+  getGenreSpotlights(sections = 8, limitPerGenre = 12): Observable<GenrePick[]> {
+    const params = new HttpParams()
+      .set('sections', String(sections))
+      .set('limit', String(limitPerGenre));
+    return this.http.get<GenrePick[]>(this.getUrl('/collections/genre-spotlights'), { params });
+  }
+
+  getMoviesByGenre(genre: string, limit = 20): Observable<Movie[]> {
+    const params = new HttpParams().set('genre', genre).set('limit', String(limit));
+    return this.http.get<Movie[]>(this.getUrl('/collections/by-genre'), { params });
   }
 
   // Методы для работы с рецензиями

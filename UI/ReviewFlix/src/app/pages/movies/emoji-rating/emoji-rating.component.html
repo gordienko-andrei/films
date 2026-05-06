@@ -1,14 +1,15 @@
 <div class="emojis-block">
-    @for(emotion of emotions; track $index) {
-        <p-chip 
-            [label]="emotion.count.toString()"
-            [icon]="emotion.emoji"
-            [class.selected]="isSelected(emotion.id)"
-            (click)="toggleEmotion(emotion.id)"
-            class="emotion-chip">
-            {{ emotion.emoji }}
-        </p-chip>
-    }
+    
+        @for(emotion of emotions; track emotion.id) {
+            <p-chip 
+                [label]="emotion.count.toString()"
+                [icon]="emotion.emoji"
+                [class.selected]="isSelected(emotion.id)"
+                (click)="toggleEmotion(emotion.id)"
+                class="emotion-chip">
+                {{ emotion.emoji }}
+            </p-chip>
+        }
 </div>
 @if (error) {
     <small class="emojis-error">{{ error }}</small>

@@ -1,0 +1,114 @@
+.login-container {
+    min-height: 100dvh;
+    width: 100%;
+    padding: 0.75rem 1rem 1rem;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 0.5rem;
+}
+
+.login-header {
+    display: flex;
+    align-items: center;
+    min-height: 3rem;
+}
+
+.login-layout {
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-card {
+    width: min(100%, 28rem);
+}
+
+.login-type-form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.75rem 1rem 0.25rem;
+}
+
+.login-actions {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.logo-link {
+    text-decoration: none;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+}
+
+.logo-text {
+    font-weight: 700;
+    line-height: 1.1;
+    font-size: clamp(1.05rem, 3.8vw, 1.35rem);
+}
+
+.logo-text__full {
+    display: none;
+
+    @media (min-width: 400px) {
+        display: inline;
+    }
+}
+
+.logo-text__abbr {
+    display: inline;
+    font-size: 1.05em;
+    letter-spacing: 0.02em;
+
+    @media (min-width: 400px) {
+        display: none;
+    }
+}
+
+.logo-highlight {
+    color: #ff6b6b;
+}
+
+@media (max-width: 767px) {
+    .login-container {
+        padding: 0.6rem 0.75rem 0.75rem;
+    }
+
+    .login-layout {
+        align-items: center;
+        justify-content: center;
+    }
+
+    .login-card {
+        width: 100%;
+    }
+
+    .login-type-form {
+        padding: 0.75rem 0.5rem 0.25rem;
+    }
+
+    :host ::ng-deep .login-type-switch {
+        width: 100%;
+    }
+
+    :host ::ng-deep .login-type-switch .p-selectbutton {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+    }
+
+    :host ::ng-deep .login-type-switch .p-button {
+        width: 100%;
+    }
+
+    :host ::ng-deep .login-card .p-card-body,
+    :host ::ng-deep .login-card .p-card-content,
+    :host ::ng-deep .login-card .p-card-footer {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+}

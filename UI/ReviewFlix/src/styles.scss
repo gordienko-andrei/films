@@ -22,12 +22,19 @@ body {
     min-height: 100vh;
 }
 
-/* Карусели постеров: расстояние между слайдами */
 .poster-carousel .p-carousel-content {
-    gap: 0.5rem;
+    gap: 0;
+    justify-content: flex-start;
 }
 
-/* Карусели постеров: градиент справа намекает, что ленту можно листать */
+.poster-carousel .p-carousel-item {
+    display: flex;
+    justify-content: center;
+    box-sizing: border-box;
+    padding-inline: 0.25rem;
+    flex: 0 0 calc(100% / 5);
+}
+
 .poster-carousel .p-carousel-viewport {
     position: relative;
 }
@@ -54,7 +61,11 @@ body {
     }
 
     .poster-carousel .p-carousel-content {
-        gap: 0.9rem;
+        gap: 0;
+    }
+
+    .poster-carousel .p-carousel-item {
+        flex: 0 0 calc(100% / 2.5);
     }
 
     .p-card .p-card-body {
@@ -66,7 +77,6 @@ body {
     }
 }
 
-/* PrimeNG Autocomplete: панель часто вешается на body — стили глобальные */
 .p-autocomplete-overlay.navbar-search-ac-panel,
 .navbar-search-ac-panel.p-autocomplete-overlay {
   box-sizing: border-box;

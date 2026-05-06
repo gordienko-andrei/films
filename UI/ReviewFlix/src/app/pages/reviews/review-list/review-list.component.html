@@ -9,7 +9,7 @@
         }
     
         @if(createNewReviewVisible) {
-            <app-create-review [movieId]="movieId" (createNewReviewVisible)="createNewReviewVisible = $event"></app-create-review>
+            <app-create-review [movieId]="movieId" (createNewReviewVisible)="onCreateReviewVisibility($event)"></app-create-review>
         }
         @else {
             <p-button 

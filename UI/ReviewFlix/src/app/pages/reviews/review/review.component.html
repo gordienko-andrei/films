@@ -3,7 +3,7 @@
         <ng-template pTemplate="title">
             <div class="review-item__head">
                 <div class="review-item__meta">
-                    <span class="review-item__author">{{ review.user.name ?? 'User' }}</span>
+                    <span class="review-item__author">{{ review.user?.name ?? 'Guest' }}</span>
                     <span class="review-item__date">{{ review.createdAt | date:'dd.MM.yyyy' }}</span>
                 </div>
                 <div class="review-item__rating-wrap">

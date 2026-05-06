@@ -323,23 +323,23 @@
 
     .movie-credits__person {
         width: 100%;
-        max-width: 14rem;
+        max-width: 11rem;
         margin-inline: auto;
 
         @media (max-width: 767px) {
-            max-width: min(15rem, 48vw);
+            max-width: min(11rem, 40vw);
         }
     }
 
     .movie-credits__photo {
         width: 100%;
-        max-width: 14rem;
+        max-width: 11rem;
         height: auto;
         aspect-ratio: 2 / 3;
         border-radius: 1rem;
 
         @media (max-width: 767px) {
-            max-width: min(15rem, 48vw);
+            max-width: min(11rem, 40vw);
         }
     }
 

@@ -1,21 +1,17 @@
 <p-card [header]="title">
     <div class="recently__discussed-block poster-carousel">
-        <p-carousel
-            [value]="movies"
-            [numVisible]="posterCarouselNumVisible"
-            [numScroll]="posterCarouselNumScroll"
-            [responsiveOptions]="posterCarouselResponsiveOptions"
-            [circular]="true"
-            [showIndicators]="false">
-                <ng-template let-movie pTemplate="item">
-                    <a class="carousel-item" [routerLink]="['/movie', movie.id]">
-                        <div class="carousel-item__image">
-                            <img [src]="movie.posterUrl" [alt]="movie.title" class="carousel-item__image-img" />
-                        </div>
-                        <div class="carousel-item__title">{{ movie.title }}</div>
-                        <div class="carousel-item__year">{{ movie.year }}</div>
-                    </a>
-                </ng-template>
-        </p-carousel>
+        <div class="movie-carousel__scroller" role="list">
+            <a
+                class="carousel-item"
+                role="listitem"
+                *ngFor="let movie of movies; trackBy: trackByMovieId"
+                [routerLink]="['/movie', movie.id]">
+                <div class="carousel-item__image">
+                    <img [src]="movie.posterUrl" [alt]="movie.title" class="carousel-item__image-img" />
+                </div>
+                <div class="carousel-item__title">{{ movie.title }}</div>
+                <div class="carousel-item__year">{{ movie.year }}</div>
+            </a>
+        </div>
     </div> 
 </p-card>

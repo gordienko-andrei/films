@@ -4,7 +4,7 @@ import { FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } fr
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { LoginService } from '../login.service';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { catchError, take, tap } from 'rxjs/operators';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -20,7 +20,7 @@ enum AuthorizationType {
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CardModule, InputTextModule, ReactiveFormsModule, ButtonModule, SelectButtonModule, PasswordModule],
+  imports: [CardModule, InputTextModule, ReactiveFormsModule, ButtonModule, SelectButtonModule, PasswordModule, RouterModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })

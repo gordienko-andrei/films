@@ -37,6 +37,20 @@ export interface Movie {
   credits?: MovieCreditsSnapshot | null;
 }
 
+/** Подборка по настроению (эмоции) с бэка GET /collections/mood-picks */
+export interface MoodPick {
+  slug: string;
+  name: string;
+  emoji: string;
+  movies: Movie[];
+}
+
+/** Подборка по жанру с бэка GET /collections/genre-spotlights */
+export interface GenrePick {
+  genre: string;
+  movies: Movie[];
+}
+
 export interface MovieSuggestionItem {
   id?: string;
   externalId: string | null;

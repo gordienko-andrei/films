@@ -11,10 +11,12 @@ import { TextareaModule } from 'primeng/textarea';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AccordionModule } from 'primeng/accordion';
 import { ReviewService } from '../review.service';
-import { catchError, of, take, tap, forkJoin } from 'rxjs';
+import { catchError, of, take, tap, forkJoin, switchMap } from 'rxjs';
 import { CreateReview } from '../../../interfaces/createReview.interface';
 import { MessageService } from 'primeng/api';
 import { ReviewCriterionTemplate, ReviewTag } from '../../../interfaces/review.interface';
+import { SessionService } from '../../../services/session.service';
+import { Router } from '@angular/router';
 
 @Component({
   
@@ -38,6 +40,8 @@ import { ReviewCriterionTemplate, ReviewTag } from '../../../interfaces/review.i
 export class CreateReviewComponent implements OnInit {
   private reviewService = inject(ReviewService);
   private messageService = inject(MessageService);
+  private session = inject(SessionService);
+  private router = inject(Router);
 
   @Input() movieId!: string;
   @Output() createNewReviewVisible: EventEmitter<boolean> = new EventEmitter<boolean>();
@@ -148,26 +152,54 @@ export class CreateReviewComponent implements OnInit {
         })),
         tagIds: formValue.tagIds || []
       };
-      
-      this.reviewService.sendReview(this.movieId, reviewData)
-      .pipe(
-        take(1),
-        tap((response) => {
-          if(response) {
-            this.messageService.add(
-              { severity: 'success', summary: 'Success', detail: 'Review created successfully' }
-            );
-            this.hideCreateReview();
-          }
-        }),
-        catchError(() => {
-          this.messageService.add(
-            { severity: 'error', summary: 'Error', detail: 'Failed to create review' }
-          );
-          return of(null);
-        }),
-      )
-      .subscribe();
+
+      this.session
+        .refresh()
+        .pipe(
+          take(1),
+          switchMap(() => {
+            if (!this.session.user()) {
+              this.messageService.add({
+                severity: 'info',
+                summary: 'Login required',
+                detail: 'Please sign in to create a review.',
+              });
+              this.createNewReviewVisible.emit(false);
+              this.router.navigate(['/login']);
+              return of(null);
+            }
+            return this.reviewService.sendReview(this.movieId, reviewData);
+          }),
+          take(1),
+          tap((response) => {
+            if (response) {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: 'Review created successfully',
+              });
+              this.hideCreateReview();
+            }
+          }),
+          catchError((err) => {
+            const status = err?.status;
+            if (status === 409) {
+              this.messageService.add({
+                severity: 'warn',
+                summary: 'Already reviewed',
+                detail: 'You already have a review for this movie.',
+              });
+            } else {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Failed to create review',
+              });
+            }
+            return of(null);
+          }),
+        )
+        .subscribe();
     }
   }
 

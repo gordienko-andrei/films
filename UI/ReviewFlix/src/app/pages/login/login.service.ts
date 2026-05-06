@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { Observable, map, switchMap, tap } from 'rxjs';
 import { SessionService, SessionUser } from '../../services/session.service';
+import { GuestIdentityService } from '../../services/guest-identity.service';
 
 export type UserWithoutPassword = SessionUser;
 
@@ -18,16 +19,19 @@ export class LoginService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.apiUrl;
   private readonly session = inject(SessionService);
+  private readonly guestIdentity = inject(GuestIdentityService);
 
   login(email: string, password: string): Observable<AuthResponse> {
+    const deviceId = this.guestIdentity.getOrCreate();
     return this.http
-      .post<AuthResponse>(`${this.apiUrl}/auth/login`, { email, password })
+      .post<AuthResponse>(`${this.apiUrl}/auth/login`, { email, password, deviceId })
       .pipe(switchMap((res) => this.session.refresh().pipe(map(() => res))));
   }
 
   register(name: string, email: string, password: string): Observable<AuthResponse> {
+    const deviceId = this.guestIdentity.getOrCreate();
     return this.http
-      .post<AuthResponse>(`${this.apiUrl}/auth/register`, { name, email, password })
+      .post<AuthResponse>(`${this.apiUrl}/auth/register`, { name, email, password, deviceId })
       .pipe(switchMap((res) => this.session.refresh().pipe(map(() => res))));
   }
 

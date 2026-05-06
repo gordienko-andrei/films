@@ -13,6 +13,9 @@ import { FormsModule } from '@angular/forms';
 import { TagModule } from 'primeng/tag';
 import { NgClass } from '@angular/common';
 import { ReviewComponent } from '../review/review.component';
+import { SessionService } from '../../../services/session.service';
+import { Router } from '@angular/router';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-review-list',
@@ -34,6 +37,9 @@ export class ReviewListComponent implements OnInit, OnChanges {
   @Input() movieId!: string;
   private reviewService = inject(ReviewService);
   private cdr = inject(ChangeDetectorRef);
+  private session = inject(SessionService);
+  private router = inject(Router);
+  private messageService = inject(MessageService);
   public reviews: Review[] = [];
   public createNewReviewVisible: boolean = false;
   public fullReviewVisible: Map<number, boolean> = new Map();
@@ -75,7 +81,23 @@ export class ReviewListComponent implements OnInit, OnChanges {
   }
 
   showCreateReview(): void {
+    if (!this.session.isAuthenticated()) {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Login required',
+        detail: 'Sign in to publish reviews and track your movie taste.',
+      });
+      this.router.navigate(['/login']);
+      return;
+    }
     this.createNewReviewVisible = true;
+  }
+
+  onCreateReviewVisibility(visible: boolean): void {
+    this.createNewReviewVisible = visible;
+    if (!visible) {
+      this.getReviews();
+    }
   }
 
   hideCreateReview(): void {
