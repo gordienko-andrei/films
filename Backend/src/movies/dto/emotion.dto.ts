@@ -1,4 +1,4 @@
-import { IsInt, IsNotEmpty, IsString } from 'class-validator';
+import { IsInt, IsNotEmpty, IsString, IsOptional, IsUUID } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateEmotionDto {
@@ -23,6 +23,16 @@ export class AddEmotionToFilmDto {
   @IsInt()
   @IsNotEmpty()
   emotionId!: number;
+
+  @ApiProperty({ required: false, description: 'UUID устройства (v4), если нет JWT' })
+  @IsOptional()
+  @IsUUID('4')
+  deviceId?: string;
+
+  @ApiProperty({ required: false, description: 'Legacy alias for deviceId' })
+  @IsOptional()
+  @IsUUID('4')
+  guestKey?: string;
 }
 
 export class EmotionResponseDto {

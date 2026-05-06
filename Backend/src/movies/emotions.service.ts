@@ -5,7 +5,7 @@ import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class EmotionsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async createEmotion(dto: CreateEmotionDto) {
     try {
@@ -23,13 +23,15 @@ export class EmotionsService {
   }
 
   async getFilmEmotions(filmId: string): Promise<EmotionResponseDto[]> {
-    const filmEmotions = await this.prisma.$queryRaw<Array<{
-      id: number;
-      name: string;
-      emoji: string;
-      slug: string;
-      count: number | null;
-    }>>`
+    const filmEmotions = await this.prisma.$queryRaw<
+      Array<{
+        id: number;
+        name: string;
+        emoji: string;
+        slug: string;
+        count: number | null;
+      }>
+    >`
       SELECT 
         e.id, 
         e.name, 
@@ -50,7 +52,8 @@ export class EmotionsService {
   }
 
   async addEmotionToFilm(
-    userId: number,
+    participantKey: string,
+    userId: number | null,
     filmId: string,
     emotionId: number,
   ): Promise<void> {
@@ -70,55 +73,77 @@ export class EmotionsService {
       throw new NotFoundException(`Emotion with ID ${emotionId} not found`);
     }
 
-    await this.prisma.$transaction(async (prisma) => {
-      const existingEmotion = await prisma.$queryRaw<any[]>`
-        SELECT * FROM user_emotions
-        WHERE "userId" = ${userId}
-        AND "filmId" = ${filmId}
-        AND "emotionId" = ${emotionId}
-      `;
-
-      if (existingEmotion.length) {
-        await prisma.$executeRaw`
-          DELETE FROM user_emotions
-          WHERE "userId" = ${userId}
+    await this.prisma.$transaction(async (tx) => {
+      const existing = await tx.$queryRaw<Array<{ id: number }>>`
+        SELECT id FROM user_emotions
+        WHERE "participantKey" = ${participantKey}
           AND "filmId" = ${filmId}
           AND "emotionId" = ${emotionId}
-        `;
+      `;
 
-        await prisma.$executeRaw`
-          UPDATE film_emotions
-          SET count = count - 1
-          WHERE "filmId" = ${filmId}
-          AND "emotionId" = ${emotionId}
+      if (existing.length > 0) {
+        await tx.$executeRaw`
+          DELETE FROM user_emotions WHERE id = ${existing[0].id}
         `;
-      } else {
-        await prisma.$executeRaw`
-          INSERT INTO user_emotions ("userId", "filmId", "emotionId", "createdAt")
-          VALUES (${userId}, ${filmId}, ${emotionId}, NOW())
+        const feRows = await tx.$queryRaw<Array<{ count: number }>>`
+          SELECT count FROM film_emotions
+          WHERE "filmId" = ${filmId} AND "emotionId" = ${emotionId}
         `;
-
-        await prisma.$executeRaw`
-          INSERT INTO film_emotions ("filmId", "emotionId", count)
-          VALUES (${filmId}, ${emotionId}, 1)
-          ON CONFLICT ("filmId", "emotionId")
-          DO UPDATE SET count = film_emotions.count + 1
-        `;
+        const cnt = feRows[0]?.count ?? 0;
+        if (cnt > 0) {
+          await tx.$executeRaw`
+            UPDATE film_emotions
+            SET count = count - 1
+            WHERE "filmId" = ${filmId} AND "emotionId" = ${emotionId}
+          `;
+        }
+        return;
       }
+
+      await tx.$executeRaw`
+        INSERT INTO user_emotions ("participantKey", "userId", "filmId", "emotionId", "createdAt")
+        VALUES (${participantKey}, ${userId}, ${filmId}, ${emotionId}, NOW())
+      `;
+
+      await tx.$executeRaw`
+        INSERT INTO film_emotions ("filmId", "emotionId", count)
+        VALUES (${filmId}, ${emotionId}, 1)
+        ON CONFLICT ("filmId", "emotionId")
+        DO UPDATE SET count = film_emotions.count + 1
+      `;
     });
   }
 
-  async getUserEmotionsForFilm(
-    userId: number,
-    filmId: string,
-  ): Promise<number[]> {
-    const userEmotions = await this.prisma.$queryRaw<Array<{ emotionId: number }>>`
+  async getUserEmotionsForParticipant(participantKey: string, filmId: string): Promise<number[]> {
+    const rows = await this.prisma.$queryRaw<Array<{ emotionId: number }>>`
       SELECT "emotionId"
       FROM user_emotions
-      WHERE "userId" = ${userId}
-      AND "filmId" = ${filmId}
+      WHERE "participantKey" = ${participantKey}
+        AND "filmId" = ${filmId}
     `;
-
-    return userEmotions.map((ue) => ue.emotionId);
+    return rows.map((r) => r.emotionId);
   }
-} 
+
+  async mergeDeviceReactionsToUser(deviceId: string, userId: number): Promise<void> {
+    const deviceKey = `g:${deviceId}`;
+    const userKey = `u:${userId}`;
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`
+        DELETE FROM user_emotions ue_guest
+        USING user_emotions ue_user
+        WHERE ue_guest."participantKey" = ${deviceKey}
+          AND ue_user."participantKey" = ${userKey}
+          AND ue_guest."filmId" = ue_user."filmId"
+          AND ue_guest."emotionId" = ue_user."emotionId"
+      `;
+
+      await tx.$executeRaw`
+        UPDATE user_emotions
+        SET "participantKey" = ${userKey},
+            "userId" = ${userId}
+        WHERE "participantKey" = ${deviceKey}
+      `;
+    });
+  }
+}

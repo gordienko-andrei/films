@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiBody } from '@nestjs/swagger';
@@ -38,7 +48,7 @@ export class ReviewsController {
   async create(
     @Param('movieId') movieId: string,
     @Body() reviewData: CreateReviewDto,
-    @Request() req: any
+    @Request() req: any,
   ) {
     return this.reviewsService.create(movieId, reviewData, req.user.id);
   }

@@ -5,10 +5,12 @@ import {
   Body,
   Param,
   UseGuards,
-  ParseIntPipe,
+  Req,
+  BadRequestException,
+  Query,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
 import { EmotionsService } from './emotions.service';
 import {
   CreateEmotionDto,
@@ -16,7 +18,7 @@ import {
   EmotionResponseDto,
   FilmEmotionsResponseDto,
 } from './dto/emotion.dto';
-import { User } from '../decorators/user.decorator';
+import type { Request } from 'express';
 
 @ApiTags('emotions')
 @Controller('films')
@@ -38,34 +40,51 @@ export class EmotionsController {
   }
 
   @Post(':id/emotions')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Add or remove an emotion for a film' })
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({ summary: 'Add or remove an emotion for a film (guest: body.guestKey)' })
   @ApiResponse({
     status: 200,
     description: 'Emotion has been toggled successfully',
   })
   async toggleEmotion(
-    @User('id') userId: number,
+    @Req() req: Request & { user?: { id: number } },
     @Param('id') filmId: string,
     @Body() dto: AddEmotionToFilmDto,
   ): Promise<void> {
-    await this.emotionsService.addEmotionToFilm(userId, filmId, dto.emotionId);
+    const userId = req.user?.id;
+    const deviceId = dto.deviceId ?? dto.guestKey;
+    if (userId != null) {
+      await this.emotionsService.addEmotionToFilm(`u:${userId}`, userId, filmId, dto.emotionId);
+      return;
+    }
+    if (!deviceId) {
+      throw new BadRequestException('deviceId is required when not signed in');
+    }
+    await this.emotionsService.addEmotionToFilm(`g:${deviceId}`, null, filmId, dto.emotionId);
   }
 
   @Get(':id/user-emotions')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get user emotions for a film' })
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({ summary: 'Emotion IDs for current user or guest (?guestKey=uuid)' })
   @ApiResponse({
     status: 200,
     description: 'Returns list of emotion IDs that user has reacted with',
     type: [Number],
   })
   async getUserEmotions(
-    @User('id') userId: number,
+    @Req() req: Request & { user?: { id: number } },
     @Param('id') filmId: string,
+    @Query('deviceId') deviceId?: string,
+    @Query('guestKey') guestKey?: string,
   ): Promise<number[]> {
-    return this.emotionsService.getUserEmotionsForFilm(userId, filmId);
+    const userId = req.user?.id;
+    if (userId != null) {
+      return this.emotionsService.getUserEmotionsForParticipant(`u:${userId}`, filmId);
+    }
+    const effectiveDeviceId = deviceId ?? guestKey;
+    if (!effectiveDeviceId) {
+      return [];
+    }
+    return this.emotionsService.getUserEmotionsForParticipant(`g:${effectiveDeviceId}`, filmId);
   }
 } 

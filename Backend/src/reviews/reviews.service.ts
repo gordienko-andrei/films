@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { Prisma, Review } from '@prisma/client';
@@ -11,8 +11,11 @@ export class ReviewsService {
     private analysisService: AnalysisService,
   ) {}
 
-  async create(movieId: string, reviewData: CreateReviewDto, userId: number): Promise<Review> {
-    // Проверяем существование фильма
+  async create(
+    movieId: string,
+    reviewData: CreateReviewDto,
+    userId: number,
+  ): Promise<Review> {
     const movie = await this.prisma.movie.findUnique({
       where: { id: movieId },
     });
@@ -20,45 +23,57 @@ export class ReviewsService {
       throw new NotFoundException('Movie not found');
     }
 
-    // Создаем отзыв
-    const review = await this.prisma.review.create({
-      data: {
-        content: reviewData.content,
-        rating: reviewData.rating,
-        pros: reviewData.pros || [],
-        cons: reviewData.cons || [],
-        user: { connect: { id: userId } },
-        movie: { connect: { id: movieId } },
-        // Связываем теги
-        tags: reviewData.tagIds && reviewData.tagIds.length > 0 ? {
-          connect: reviewData.tagIds.map(id => ({ id })),
-        } : undefined,
-        // Создаем критерии
-        criteria: reviewData.criteria && reviewData.criteria.length > 0 ? {
-          create: reviewData.criteria.map(criteria => ({
-            name: criteria.name,
-            score: criteria.score,
-            comment: criteria.comment,
-            templateId: criteria.templateId,
-          })),
-        } : undefined,
-      },
-      include: {
-        criteria: {
-          include: {
-            template: true,
-          },
+    const authorRef = `u:${userId}`;
+
+    try {
+      const review = await this.prisma.review.create({
+        data: {
+          authorRef,
+          content: reviewData.content,
+          rating: reviewData.rating,
+          pros: reviewData.pros || [],
+          cons: reviewData.cons || [],
+          user: { connect: { id: userId } },
+          movie: { connect: { id: movieId } },
+          tags:
+            reviewData.tagIds && reviewData.tagIds.length > 0
+              ? {
+                  connect: reviewData.tagIds.map((id) => ({ id })),
+                }
+              : undefined,
+          criteria:
+            reviewData.criteria && reviewData.criteria.length > 0
+              ? {
+                  create: reviewData.criteria.map((criteria) => ({
+                    name: criteria.name,
+                    score: criteria.score,
+                    comment: criteria.comment,
+                    templateId: criteria.templateId,
+                  })),
+                }
+              : undefined,
         },
-        tags: true,
-      },
-    });
+        include: {
+          criteria: {
+            include: {
+              template: true,
+            },
+          },
+          tags: true,
+        },
+      });
 
-    // Анализируем отзыв и создаем метаданные асинхронно (не блокируем создание)
-    this.createReviewMetadata(review.id, review.content).catch(err => {
-      console.error('Error creating review metadata:', err);
-    });
+      this.createReviewMetadata(review.id, review.content).catch((err) => {
+        console.error('Error creating review metadata:', err);
+      });
 
-    return review;
+      return review;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+        throw new ConflictException('You already submitted a review for this movie');
+      }
+      throw e;
+    }
   }
 
   private async createReviewMetadata(reviewId: number, content: string): Promise<void> {

@@ -7,10 +7,12 @@ import { JwtStrategy } from './jwt.strategy';
 import { LocalStrategy } from './local.strategy';
 import { UsersModule } from '../users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MoviesModule } from '../movies/movies.module';
 
 @Module({
   imports: [
     UsersModule,
+    MoviesModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

@@ -21,6 +21,7 @@ import { RegisterDto } from './dto/register.dto';
 import { ACCESS_TOKEN_COOKIE } from './auth.constants';
 import { UsersService } from '../users/users.service';
 import { ConfigService } from '@nestjs/config';
+import { EmotionsService } from '../movies/emotions.service';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -29,6 +30,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
     private readonly configService: ConfigService,
+    private readonly emotionsService: EmotionsService,
   ) {}
 
   private authCookieOptions() {
@@ -65,11 +67,15 @@ export class AuthController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async login(
-    @Body() _loginDto: LoginDto,
+    @Body() loginDto: LoginDto & { deviceId?: string },
     @Request() req: ExpressRequest & { user: UserWithoutPassword },
     @Res({ passthrough: true }) res: Response,
   ) {
     const data = await this.authService.login(req.user);
+    const deviceId = loginDto.deviceId?.trim();
+    if (deviceId) {
+      await this.emotionsService.mergeDeviceReactionsToUser(deviceId, req.user.id);
+    }
     res.cookie(ACCESS_TOKEN_COOKIE, data.access_token, this.authCookieOptions());
     return data;
   }
@@ -101,10 +107,14 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 409, description: 'User with this email already exists' })
   async register(
-    @Body() registerDto: RegisterDto,
+    @Body() registerDto: RegisterDto & { deviceId?: string },
     @Res({ passthrough: true }) res: Response,
   ) {
     const data = await this.authService.register(registerDto);
+    const deviceId = registerDto.deviceId?.trim();
+    if (deviceId) {
+      await this.emotionsService.mergeDeviceReactionsToUser(deviceId, data.user.id);
+    }
     res.cookie(ACCESS_TOKEN_COOKIE, data.access_token, this.authCookieOptions());
     return data;
   }
@@ -134,7 +144,6 @@ export class AuthController {
     if (!user) {
       throw new NotFoundException();
     }
-    const { password, ...safe } = user;
-    return safe;
+    return user;
   }
 } 

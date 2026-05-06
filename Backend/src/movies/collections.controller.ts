@@ -1,4 +1,4 @@
-import { Controller, Get, Logger, Query, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Logger, Query, Param, UseGuards, Request } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { ReviewCollectionsService } from './review-collections.service';
 import { ApiTags, ApiOperation, ApiQuery, ApiParam } from '@nestjs/swagger';
@@ -44,6 +44,91 @@ export class CollectionsController {
     const movies = await this.moviesService.getPopular();
     this.logger.log(`Found ${movies.length} popular movies`);
     return movies;
+  }
+
+  @Get('because-you-liked')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Personal recommendations based on likes, emotions and ratings' })
+  async getBecauseYouLiked(
+    @Request() req: any,
+    @Query('limit') limit: string = '20',
+  ) {
+    const safeLimit = Number.parseInt(limit, 10) || 20;
+    this.logger.log(`Getting because-you-liked collection for user=${req.user.id}`);
+    return this.moviesService.getBecauseYouLiked(req.user.id, safeLimit);
+  }
+
+  @Get('top-rated-this-week')
+  @ApiOperation({ summary: 'Top rated movies by rating quality and activity for last N days' })
+  async getTopRatedThisWeek(
+    @Query('limit') limit: string = '20',
+    @Query('days') days: string = '7',
+  ) {
+    const safeLimit = Number.parseInt(limit, 10) || 20;
+    const safeDays = Number.parseInt(days, 10) || 7;
+    this.logger.log(`Getting top-rated-this-week, days=${safeDays}, limit=${safeLimit}`);
+    return this.moviesService.getTopRatedThisWeek(safeLimit, safeDays);
+  }
+
+  @Get('most-discussed')
+  @ApiOperation({ summary: 'Most discussed movies by review volume for last N days' })
+  async getMostDiscussed(
+    @Query('limit') limit: string = '20',
+    @Query('days') days: string = '7',
+  ) {
+    const safeLimit = Number.parseInt(limit, 10) || 20;
+    const safeDays = Number.parseInt(days, 10) || 7;
+    this.logger.log(`Getting most-discussed, days=${safeDays}, limit=${safeLimit}`);
+    return this.moviesService.getMostDiscussed(safeLimit, safeDays);
+  }
+
+  @Get('mood-picks')
+  @ApiOperation({ summary: 'Mood picks by emotion slug(s)' })
+  async getMoodPicks(
+    @Query('limit') limit: string = '12',
+    @Query('moods') moods?: string,
+  ) {
+    const safeLimit = Number.parseInt(limit, 10) || 12;
+    const moodSlugs = moods
+      ? moods.split(',').map((m) => m.trim()).filter(Boolean)
+      : undefined;
+    this.logger.log(`Getting mood-picks, moods=${moodSlugs?.join('|') ?? 'all'}, limit=${safeLimit}`);
+    return this.moviesService.getMoodPicks(safeLimit, moodSlugs);
+  }
+
+  @Get('hidden-gems')
+  @ApiOperation({ summary: 'Hidden gems: high-rated movies with lower engagement' })
+  async getHiddenGems(@Query('limit') limit: string = '20') {
+    const safeLimit = Number.parseInt(limit, 10) || 20;
+    this.logger.log(`Getting hidden-gems, limit=${safeLimit}`);
+    return this.moviesService.getHiddenGems(safeLimit);
+  }
+
+  @Get('genre-spotlights')
+  @ApiOperation({ summary: 'Carousel-ready genre sections (top genres in DB)' })
+  @ApiQuery({ name: 'sections', required: false, description: 'Number of genre rows (default 8)' })
+  @ApiQuery({ name: 'limit', required: false, description: 'Movies per genre (default 12)' })
+  async getGenreSpotlights(
+    @Query('sections') sections: string = '8',
+    @Query('limit') limit: string = '12',
+  ) {
+    const safeSections = Number.parseInt(sections, 10) || 8;
+    const safeLimit = Number.parseInt(limit, 10) || 12;
+    this.logger.log(`Getting genre-spotlights, sections=${safeSections}, limit=${safeLimit}`);
+    return this.moviesService.getGenreSpotlights(safeSections, safeLimit);
+  }
+
+  @Get('by-genre')
+  @ApiOperation({ summary: 'Movies for a single genre (primary genre field)' })
+  @ApiQuery({ name: 'genre', required: true, description: 'Genre name, e.g. Drama' })
+  @ApiQuery({ name: 'limit', required: false, description: 'Max movies (default 20)' })
+  async getByGenre(
+    @Query('genre') genre: string,
+    @Query('limit') limit: string = '20',
+  ) {
+    const safeLimit = Number.parseInt(limit, 10) || 20;
+    this.logger.log(`Getting by-genre genre=${genre}, limit=${safeLimit}`);
+    return this.moviesService.getMoviesByGenre(genre ?? '', safeLimit);
   }
 
   @Get('by-criteria/:criterionName')

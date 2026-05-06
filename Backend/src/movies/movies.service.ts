@@ -13,6 +13,18 @@ interface MovieFilters {
   director?: string;
 }
 
+export interface MoodPick {
+  slug: string;
+  name: string;
+  emoji: string;
+  movies: Movie[];
+}
+
+export interface GenrePick {
+  genre: string;
+  movies: Movie[];
+}
+
 export interface MovieSuggestion {
   id?: string;
   externalId: string | null;
@@ -522,6 +534,13 @@ export class MoviesService {
     };
   }
 
+  private normalizeLimit(limit: number, fallback = 20, max = 50): number {
+    if (!Number.isFinite(limit) || limit <= 0) {
+      return fallback;
+    }
+    return Math.min(Math.floor(limit), max);
+  }
+
   async getRecentlyDiscussed(): Promise<Movie[]> {
     return this.prisma.movie.findMany({
       where: {
@@ -615,6 +634,419 @@ export class MoviesService {
       const scoreA = a.ratings.length + a.reviews.length;
       const scoreB = b.ratings.length + b.reviews.length;
       return scoreB - scoreA;
+    });
+  }
+
+  async getBecauseYouLiked(userId: number, limit = 20): Promise<Movie[]> {
+    const safeLimit = this.normalizeLimit(limit);
+
+    const [likedRatings, likedReviews, likedEmotions] = await Promise.all([
+      this.prisma.rating.findMany({
+        where: { userId, score: { gte: 8 } },
+        select: { movieId: true },
+        orderBy: { updatedAt: 'desc' },
+        take: 50,
+      }),
+      this.prisma.review.findMany({
+        where: { userId, rating: { gte: 8 } },
+        select: { movieId: true },
+        orderBy: { updatedAt: 'desc' },
+        take: 50,
+      }),
+      this.prisma.userEmotion.findMany({
+        where: { userId },
+        select: { filmId: true, emotionId: true },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+      }),
+    ]);
+
+    const likedMovieIds = new Set<string>([
+      ...likedRatings.map((r) => r.movieId),
+      ...likedReviews.map((r) => r.movieId),
+      ...likedEmotions.map((e) => e.filmId),
+    ]);
+
+    if (likedMovieIds.size === 0) {
+      return this.getTrending();
+    }
+
+    const interactedMovieIds = new Set<string>(likedMovieIds);
+    const [allUserRatings, allUserReviews] = await Promise.all([
+      this.prisma.rating.findMany({ where: { userId }, select: { movieId: true } }),
+      this.prisma.review.findMany({ where: { userId }, select: { movieId: true } }),
+    ]);
+    allUserRatings.forEach((r) => interactedMovieIds.add(r.movieId));
+    allUserReviews.forEach((r) => interactedMovieIds.add(r.movieId));
+
+    const likedEmotionIds = Array.from(new Set(likedEmotions.map((e) => e.emotionId)));
+    const likedMovies = await this.prisma.movie.findMany({
+      where: { id: { in: Array.from(likedMovieIds) } },
+      select: { id: true, genre: true, director: true },
+    });
+    const likedGenres = Array.from(new Set(likedMovies.map((m) => m.genre).filter(Boolean)));
+    const likedDirectors = Array.from(new Set(likedMovies.map((m) => m.director).filter(Boolean)));
+
+    const candidates = await this.prisma.movie.findMany({
+      where: {
+        id: { notIn: Array.from(interactedMovieIds) },
+        OR: [
+          likedGenres.length > 0 ? { genre: { in: likedGenres } } : undefined,
+          likedDirectors.length > 0 ? { director: { in: likedDirectors } } : undefined,
+          likedEmotionIds.length > 0
+            ? { filmEmotions: { some: { emotionId: { in: likedEmotionIds }, count: { gt: 0 } } } }
+            : undefined,
+        ].filter(Boolean) as Prisma.MovieWhereInput[],
+      },
+      include: {
+        filmEmotions: true,
+      },
+      take: 300,
+    });
+
+    if (candidates.length === 0) {
+      return this.getTrending();
+    }
+
+    const candidateIds = candidates.map((m) => m.id);
+    const [ratingStats, reviewStats] = await Promise.all([
+      this.prisma.rating.groupBy({
+        by: ['movieId'],
+        where: { movieId: { in: candidateIds } },
+        _avg: { score: true },
+        _count: { _all: true },
+      }),
+      this.prisma.review.groupBy({
+        by: ['movieId'],
+        where: { movieId: { in: candidateIds } },
+        _count: { _all: true },
+      }),
+    ]);
+
+    const ratingMap = new Map(ratingStats.map((s) => [s.movieId, s]));
+    const reviewMap = new Map(reviewStats.map((s) => [s.movieId, s]));
+
+    const scored = candidates.map((movie) => {
+      const emotionOverlap = movie.filmEmotions.filter((fe) => likedEmotionIds.includes(fe.emotionId));
+      const emotionScore = emotionOverlap.reduce((sum, row) => sum + row.count, 0);
+      const genreScore = likedGenres.includes(movie.genre) ? 2 : 0;
+      const directorScore = likedDirectors.includes(movie.director) ? 1.5 : 0;
+      const rating = ratingMap.get(movie.id);
+      const avgRating = rating?._avg.score ?? 0;
+      const ratingCount = rating?._count._all ?? 0;
+      const reviewCount = reviewMap.get(movie.id)?._count._all ?? 0;
+
+      const score =
+        genreScore +
+        directorScore +
+        emotionScore * 0.15 +
+        avgRating * 0.7 +
+        Math.log1p(ratingCount + reviewCount);
+
+      return { movie, score };
+    });
+
+    return scored
+      .sort((a, b) => b.score - a.score)
+      .slice(0, safeLimit)
+      .map(({ movie }) => this.withPosterUrl(movie as Movie));
+  }
+
+  async getTopRatedThisWeek(limit = 20, days = 7): Promise<Movie[]> {
+    const safeLimit = this.normalizeLimit(limit);
+    const safeDays = Math.min(Math.max(Math.floor(days), 1), 30);
+    const since = new Date(Date.now() - safeDays * 24 * 60 * 60 * 1000);
+
+    const [ratingStats, reviewStats] = await Promise.all([
+      this.prisma.rating.groupBy({
+        by: ['movieId'],
+        where: { createdAt: { gte: since } },
+        _avg: { score: true },
+        _count: { _all: true },
+      }),
+      this.prisma.review.groupBy({
+        by: ['movieId'],
+        where: { createdAt: { gte: since } },
+        _avg: { rating: true },
+        _count: { _all: true },
+      }),
+    ]);
+
+    const statsMap = new Map<
+      string,
+      { ratingAvg: number; ratingCount: number; reviewAvg: number; reviewCount: number }
+    >();
+
+    for (const r of ratingStats) {
+      statsMap.set(r.movieId, {
+        ratingAvg: r._avg.score ?? 0,
+        ratingCount: r._count._all,
+        reviewAvg: 0,
+        reviewCount: 0,
+      });
+    }
+    for (const r of reviewStats) {
+      const curr = statsMap.get(r.movieId) ?? {
+        ratingAvg: 0,
+        ratingCount: 0,
+        reviewAvg: 0,
+        reviewCount: 0,
+      };
+      curr.reviewAvg = r._avg.rating ?? 0;
+      curr.reviewCount = r._count._all;
+      statsMap.set(r.movieId, curr);
+    }
+
+    const rankedIds = Array.from(statsMap.entries())
+      .map(([movieId, s]) => {
+        const weightedAvg = s.ratingAvg * 0.6 + s.reviewAvg * 0.4;
+        const activityBoost = Math.log1p(s.ratingCount + s.reviewCount);
+        return { movieId, score: weightedAvg + activityBoost };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, safeLimit)
+      .map((x) => x.movieId);
+
+    if (rankedIds.length === 0) {
+      return [];
+    }
+
+    const movies = await this.prisma.movie.findMany({ where: { id: { in: rankedIds } } });
+    const movieMap = new Map(movies.map((m) => [m.id, m]));
+    return rankedIds
+      .map((id) => movieMap.get(id))
+      .filter((m): m is NonNullable<typeof m> => Boolean(m))
+      .map((m) => this.withPosterUrl(m as Movie));
+  }
+
+  async getMostDiscussed(limit = 20, days = 7): Promise<Movie[]> {
+    const safeLimit = this.normalizeLimit(limit);
+    const safeDays = Math.min(Math.max(Math.floor(days), 1), 30);
+    const since = new Date(Date.now() - safeDays * 24 * 60 * 60 * 1000);
+
+    const grouped = await this.prisma.review.groupBy({
+      by: ['movieId'],
+      where: { createdAt: { gte: since } },
+      _count: { _all: true },
+      orderBy: { _count: { movieId: 'desc' } },
+      take: safeLimit,
+    });
+
+    const ids = grouped.map((g) => g.movieId);
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const movies = await this.prisma.movie.findMany({ where: { id: { in: ids } } });
+    const map = new Map(movies.map((m) => [m.id, m]));
+    return ids
+      .map((id) => map.get(id))
+      .filter((m): m is NonNullable<typeof m> => Boolean(m))
+      .map((m) => this.withPosterUrl(m as Movie));
+  }
+
+  async getMoodPicks(limitPerMood = 12, moods?: string[]): Promise<MoodPick[]> {
+    const safeLimit = this.normalizeLimit(limitPerMood, 12, 24);
+
+    const filterSlugs = (moods ?? [])
+      .map((m) => m.trim().toLowerCase())
+      .filter(Boolean);
+
+    const moodEmotions = await this.prisma.emotion.findMany({
+      where: filterSlugs.length ? { slug: { in: filterSlugs } } : undefined,
+      take: filterSlugs.length ? filterSlugs.length : 5,
+      orderBy: { id: 'asc' },
+    });
+
+    if (moodEmotions.length === 0) {
+      return [];
+    }
+
+    const picks: MoodPick[] = [];
+    for (const mood of moodEmotions) {
+      const filmEmotions = await this.prisma.filmEmotion.findMany({
+        where: { emotionId: mood.id, count: { gt: 0 } },
+        orderBy: { count: 'desc' },
+        take: safeLimit,
+        include: { film: true },
+      });
+
+      picks.push({
+        slug: mood.slug,
+        name: mood.name,
+        emoji: mood.emoji,
+        movies: filmEmotions.map((row) => this.withPosterUrl(row.film as Movie)),
+      });
+    }
+
+    return picks;
+  }
+
+  async getHiddenGems(limit = 20): Promise<Movie[]> {
+    const safeLimit = this.normalizeLimit(limit);
+    const [ratingStats, reviewStats] = await Promise.all([
+      this.prisma.rating.groupBy({
+        by: ['movieId'],
+        _avg: { score: true },
+        _count: { _all: true },
+      }),
+      this.prisma.review.groupBy({
+        by: ['movieId'],
+        _avg: { rating: true },
+        _count: { _all: true },
+      }),
+    ]);
+
+    const statMap = new Map<
+      string,
+      { ratingAvg: number; ratingCount: number; reviewAvg: number; reviewCount: number }
+    >();
+    for (const r of ratingStats) {
+      statMap.set(r.movieId, {
+        ratingAvg: r._avg.score ?? 0,
+        ratingCount: r._count._all,
+        reviewAvg: 0,
+        reviewCount: 0,
+      });
+    }
+    for (const r of reviewStats) {
+      const prev = statMap.get(r.movieId) ?? {
+        ratingAvg: 0,
+        ratingCount: 0,
+        reviewAvg: 0,
+        reviewCount: 0,
+      };
+      prev.reviewAvg = r._avg.rating ?? 0;
+      prev.reviewCount = r._count._all;
+      statMap.set(r.movieId, prev);
+    }
+
+    const hiddenGemIds = Array.from(statMap.entries())
+      .map(([movieId, s]) => {
+        const votes = s.ratingCount + s.reviewCount;
+        const weightedAvg = s.ratingAvg * 0.6 + s.reviewAvg * 0.4;
+        return { movieId, votes, weightedAvg };
+      })
+      .filter((s) => s.votes >= 2 && s.votes <= 12 && s.weightedAvg >= 7.5)
+      .sort((a, b) => {
+        if (b.weightedAvg !== a.weightedAvg) {
+          return b.weightedAvg - a.weightedAvg;
+        }
+        return a.votes - b.votes;
+      })
+      .slice(0, safeLimit)
+      .map((s) => s.movieId);
+
+    if (hiddenGemIds.length === 0) {
+      return [];
+    }
+
+    const movies = await this.prisma.movie.findMany({ where: { id: { in: hiddenGemIds } } });
+    const map = new Map(movies.map((m) => [m.id, m]));
+    return hiddenGemIds
+      .map((id) => map.get(id))
+      .filter((m): m is NonNullable<typeof m> => Boolean(m))
+      .map((m) => this.withPosterUrl(m as Movie));
+  }
+
+  /**
+   * Несколько подборок: топ жанров по числу фильмов в БД, внутри каждого — популярные по активности и среднему рейтингу.
+   */
+  async getGenreSpotlights(sections = 8, limitPerGenre = 12): Promise<GenrePick[]> {
+    const safeSections = Math.min(Math.max(Math.floor(sections), 3), 16);
+    const safeLimit = this.normalizeLimit(limitPerGenre, 12, 30);
+
+    const grouped = await this.prisma.movie.groupBy({
+      by: ['genre'],
+      where: {
+        genre: {
+          notIn: ['', 'Unknown', 'unknown'],
+        },
+      },
+      _count: { genre: true },
+      orderBy: { _count: { genre: 'desc' } },
+      take: safeSections,
+    });
+
+    if (grouped.length === 0) {
+      return [];
+    }
+
+    const topGenres = grouped.map((g) => g.genre).filter(Boolean);
+    const allInGenres = await this.prisma.movie.findMany({
+      where: { genre: { in: topGenres } },
+      include: {
+        ratings: true,
+        reviews: { select: { id: true } },
+      },
+    });
+
+    const byGenre = new Map<string, typeof allInGenres>();
+    for (const m of allInGenres) {
+      const list = byGenre.get(m.genre) ?? [];
+      list.push(m);
+      byGenre.set(m.genre, list);
+    }
+
+    const sortGenreMovies = (list: typeof allInGenres) =>
+      [...list].sort((a, b) => {
+        const hotA = a.ratings.length + a.reviews.length;
+        const hotB = b.ratings.length + b.reviews.length;
+        if (hotB !== hotA) {
+          return hotB - hotA;
+        }
+        const avgA = a.ratings.reduce((s, r) => s + r.score, 0) / (a.ratings.length || 1);
+        const avgB = b.ratings.reduce((s, r) => s + r.score, 0) / (b.ratings.length || 1);
+        return avgB - avgA;
+      });
+
+    const picks: GenrePick[] = [];
+    for (const genre of topGenres) {
+      const list = byGenre.get(genre) ?? [];
+      const sorted = sortGenreMovies(list)
+        .slice(0, safeLimit)
+        .map((row) => {
+          const { ratings, reviews, ...rest } = row;
+          return this.withPosterUrl(rest as Movie);
+        });
+      if (sorted.length > 0) {
+        picks.push({ genre, movies: sorted });
+      }
+    }
+
+    return picks;
+  }
+
+  async getMoviesByGenre(genre: string, limit = 20): Promise<Movie[]> {
+    const g = genre.trim();
+    if (!g) {
+      return [];
+    }
+    const safeLimit = this.normalizeLimit(limit);
+
+    const movies = await this.prisma.movie.findMany({
+      where: { genre: { equals: g, mode: 'insensitive' } },
+      include: {
+        ratings: true,
+        reviews: { select: { id: true } },
+      },
+      take: 250,
+    });
+
+    const sorted = [...movies].sort((a, b) => {
+      const hotA = a.ratings.length + a.reviews.length;
+      const hotB = b.ratings.length + b.reviews.length;
+      if (hotB !== hotA) {
+        return hotB - hotA;
+      }
+      const avgA = a.ratings.reduce((s, r) => s + r.score, 0) / (a.ratings.length || 1);
+      const avgB = b.ratings.reduce((s, r) => s + r.score, 0) / (b.ratings.length || 1);
+      return avgB - avgA;
+    });
+
+    return sorted.slice(0, safeLimit).map((row) => {
+      const { ratings, reviews, ...rest } = row;
+      return this.withPosterUrl(rest as Movie);
     });
   }
 } 

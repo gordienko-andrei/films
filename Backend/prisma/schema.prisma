@@ -55,20 +55,21 @@ model Movie {
 
 model Review {
   id        Int            @id @default(autoincrement())
+  authorRef String         // u:<userId> или g:<uuid гостя
   content   String
   rating    Int            // Общая оценка фильма
   pros      String[]       @default([])  // Что понравилось
   cons      String[]       @default([])  // Что не понравилось
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
-  user      User           @relation(fields: [userId], references: [id])
-  userId    Int
+  user      User?          @relation(fields: [userId], references: [id])
+  userId    Int?
   movie     Movie          @relation(fields: [movieId], references: [id])
   movieId   String
   criteria  ReviewCriteria[]
   tags      ReviewTag[]
   metadata  ReviewMetadata?
-  @@unique([userId, movieId])
+  @@unique([authorRef, movieId])
 }
 
 model ReviewCriteria {
@@ -167,15 +168,18 @@ model FilmEmotion {
 }
 
 model UserEmotion {
-  userId      Int
-  filmId      String
-  emotionId   Int
-  user        User          @relation(fields: [userId], references: [id])
-  film        Movie         @relation(fields: [filmId], references: [id])
-  emotion     Emotion       @relation(fields: [emotionId], references: [id])
-  createdAt   DateTime      @default(now())
+  id             Int      @id @default(autoincrement())
+  participantKey String   // u:<userId> или g:<uuid гостя
+  userId         Int?
+  filmId         String
+  emotionId      Int
+  user           User?    @relation(fields: [userId], references: [id])
+  film           Movie    @relation(fields: [filmId], references: [id])
+  emotion        Emotion  @relation(fields: [emotionId], references: [id])
+  createdAt      DateTime @default(now())
 
-  @@id([userId, filmId, emotionId])
+  @@unique([participantKey, filmId, emotionId])
+  @@index([filmId])
   @@map("user_emotions")
 }
 
