@@ -8,11 +8,12 @@ import { CommonModule } from '@angular/common';
 import { SessionService } from '../../../services/session.service';
 import { GuestIdentityService } from '../../../services/guest-identity.service';
 import { MessageService } from 'primeng/api';
+import { ShortNumberPipe } from '../../../pipes/short-number.pipe';
 
 @Component({
   selector: 'app-emoji-rating',
   standalone: true,
-  imports: [ChipModule, CommonModule],
+  imports: [ChipModule, CommonModule, ShortNumberPipe],
   templateUrl: './emoji-rating.component.html',
   styleUrl: './emoji-rating.component.scss',
 })
@@ -28,7 +29,6 @@ export class EmojiRatingComponent implements OnChanges {
   public selectedEmotionIds: Set<number> = new Set();
   public isLoading = false;
   public error: string | null = null;
-  /** После загрузки: есть ли сессия (для toggle без лишнего refresh). */
   private isLoggedIn = false;
   private readonly reactionCounterKey = 'reviewflix_anon_reactions_count';
 

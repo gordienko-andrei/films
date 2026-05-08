@@ -1,15 +1,17 @@
 <div class="emojis-block">
-    
+    <h3 class="emojis-title">How did this movie make you feel?</h3>
+    <div class="emojis-list">
         @for(emotion of emotions; track emotion.id) {
             <p-chip 
-                [label]="emotion.count.toString()"
-                [icon]="emotion.emoji"
+                [title]="emotion.name"
                 [class.selected]="isSelected(emotion.id)"
                 (click)="toggleEmotion(emotion.id)"
                 class="emotion-chip">
-                {{ emotion.emoji }}
+                <span class="emotion-main">{{ emotion.emoji }} {{ emotion.name }}</span>
+                <span class="emotion-count">{{ emotion.count | shortNumber }}</span>
             </p-chip>
         }
+    </div>
 </div>
 @if (error) {
     <small class="emojis-error">{{ error }}</small>

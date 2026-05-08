@@ -1,28 +1,64 @@
 ::ng-deep .emotion-chip {
     cursor: pointer;
     user-select: none;
-    opacity: 0.7;
-    border: 1px solid transparent;
-    transition: all 0.2s ease;
+    opacity: 0.9;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    transition:
+      transform 0.16s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      background-color 0.2s ease,
+      opacity 0.2s ease;
+
+    .p-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .emotion-main {
+      font-weight: 600;
+    }
+
+    .emotion-count {
+      opacity: 0.65;
+      font-weight: 500;
+      font-size: 0.9em;
+    }
   
     &.selected {
-      background-color: #facc15; 
-      border-color: #f59e0b;
+      background-color: #6b7280;
+      border-color: #4b5563;
       opacity: 1;
-      font-weight: bold;
+      transform: scale(1.02);
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.35), 0 4px 14px rgba(0, 0, 0, 0.22);
     }
   
     &:hover {
       opacity: 1;
+      border-color: rgba(148, 163, 184, 0.5);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: scale(0.99);
     }
   }
 
 .emojis-block {
   display: flex;
-  align-items: center;
+  align-items: start;
   justify-content: flex-start;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.emojis-list {
+  display: flex;
   flex-direction: row;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.25rem;
 }
 
 .emojis-error {
@@ -34,4 +70,13 @@
 .emojis-hint {
   display: inline-block;
   opacity: 0.8;
+}
+
+.emojis-title {
+  display: inline-block;
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #ff6b6b;
+  flex-shrink: 0;
+  margin: 0;
 }
