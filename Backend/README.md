@@ -34,6 +34,8 @@ This is the backend API for a film website built with NestJS, Prisma, and Postgr
    TMDB_API_KEY="your-tmdb-api-key"
    YOUTUBE_API_KEY="your-youtube-api-key"
    ENABLE_SWAGGER="false"
+   THROTTLE_TTL_MS=60000
+   THROTTLE_LIMIT=120
    ```
 4. Run database migrations:
    ```bash
@@ -61,6 +63,14 @@ npm run start:prod
 ```
 
 If the frontend and backend are on different domains, set `COOKIE_SAME_SITE=none` so auth cookies can be sent cross-site over HTTPS.
+
+Security defaults in this backend:
+- `helmet` is enabled globally for safer HTTP headers.
+- Global request throttling is enabled through `THROTTLE_TTL_MS` + `THROTTLE_LIMIT`.
+- Admin-only routes are protected with role checks (`ADMIN`).
+
+Health check endpoint:
+- `GET /health` returns status, uptime, timestamp and memory snapshot for basic monitoring and uptime probes.
 
 ## License
 
