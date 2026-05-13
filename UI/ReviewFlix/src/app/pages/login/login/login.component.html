@@ -1,94 +1,202 @@
 <div class="login-container">
-    <header class="login-header">
-        <a routerLink="/" class="logo-link" aria-label="ReviewFlix — home">
-            <span class="logo-text">
-                <span class="logo-text__full">Review<span class="logo-highlight">Flix</span></span>
-                <span class="logo-text__abbr" aria-hidden="true"><span class="logo-highlight">RF</span></span>
-            </span>
-        </a>
-    </header>
+    <div class="login-bg" aria-hidden="true">
+        <svg
+            class="login-bg__svg"
+            viewBox="0 0 1600 900"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="xMidYMid slice">
+            <defs>
+                <linearGradient id="login-bg-gradient" x1="0" y1="0" x2="1600" y2="900" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#09090F" />
+                    <stop offset="1" stop-color="#14142A" />
+                </linearGradient>
 
-    <div class="login-layout">
-        <p-card class="login-card">
-            <ng-template pTemplate="header">
-                <form [formGroup]="AuthorizationTypeForm" class="login-type-form">
-                    <p-selectbutton 
-                        class="login-type-switch"
-                        [options]="stateOptions" 
-                        formControlName="AuthorizationType" 
-                        optionLabel="label" 
-                        optionValue="value" />
-                </form>
-            </ng-template>
+                <radialGradient
+                    id="login-glowPink"
+                    cx="0"
+                    cy="0"
+                    r="1"
+                    gradientUnits="userSpaceOnUse"
+                    gradientTransform="translate(0 0) rotate(90) scale(1)">
+                    <stop stop-color="#FF4D9D" />
+                    <stop offset="1" stop-color="#FF4D9D" stop-opacity="0" />
+                </radialGradient>
 
-            <ng-template pTemplate="body">
-                @if (authType() === AuthorizationType.LOGIN) {
-                    <form [formGroup]="loginForm" class="flex flex-column gap-2 w-full">
-                        <div class="flex flex-column gap-2 w-full">
-                            <label for="email">Email</label>
-                            <input 
-                                type="email" 
-                                pInputText 
-                                id="email" 
-                                class="w-full"
-                                formControlName="email"
-                            />
-                        </div>
-                        <div class="flex flex-column gap-2 w-full">
-                            <label for="password">Password</label>
-                            <p-password 
-                                formControlName="password" 
-                                inputId="password"
-                                [fluid]="true"
-                                [feedback]="false"
-                                [toggleMask]="true" />
-                        </div>
+                <radialGradient
+                    id="login-glowPurple"
+                    cx="0"
+                    cy="0"
+                    r="1"
+                    gradientUnits="userSpaceOnUse"
+                    gradientTransform="translate(0 0) rotate(90) scale(1)">
+                    <stop stop-color="#7C5CFF" />
+                    <stop offset="1" stop-color="#7C5CFF" stop-opacity="0" />
+                </radialGradient>
+
+                <filter id="login-blur" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="40" />
+                </filter>
+            </defs>
+
+            <rect width="1600" height="900" fill="url(#login-bg-gradient)" />
+
+            <g class="login-deco-shift login-deco-shift--glowPurple">
+                <circle cx="350" cy="250" r="180" fill="url(#login-glowPurple)" opacity="0.35" filter="url(#login-blur)" />
+            </g>
+            <g class="login-deco-shift login-deco-shift--glowPink">
+                <circle cx="1200" cy="700" r="220" fill="url(#login-glowPink)" opacity="0.3" filter="url(#login-blur)" />
+            </g>
+
+            <g class="login-deco-shift login-deco-shift--stars" opacity="0.5">
+                <circle cx="120" cy="90" r="2" fill="#fff" class="login-pulse" />
+                <circle cx="520" cy="180" r="1.5" fill="#fff" class="login-pulse" />
+                <circle cx="840" cy="120" r="2" fill="#fff" class="login-pulse" />
+                <circle cx="1320" cy="240" r="1.5" fill="#fff" class="login-pulse" />
+                <circle cx="1450" cy="520" r="2" fill="#fff" class="login-pulse" />
+                <circle cx="260" cy="760" r="1.5" fill="#fff" class="login-pulse" />
+            </g>
+
+            <g class="login-deco-shift login-deco-shift--cardTop">
+                <g class="login-floatSlow" opacity="0.25">
+                    <rect x="780" y="180" width="240" height="110" rx="24" fill="#1E1E35" stroke="#3B3B6B" />
+                    <circle cx="830" cy="220" r="14" fill="#7C5CFF" opacity="0.6" />
+                    <rect x="860" y="210" width="120" height="10" rx="5" fill="#7C5CFF" opacity="0.5" />
+                    <rect x="860" y="235" width="90" height="10" rx="5" fill="#7C5CFF" opacity="0.3" />
+                    <text x="860" y="270" fill="#FF4D9D" font-size="24">★★★★★</text>
+                </g>
+            </g>
+
+            <g class="login-deco-shift login-deco-shift--cardBottom">
+                <g class="login-floatMedium" opacity="0.22">
+                    <rect x="420" y="520" width="260" height="120" rx="24" fill="#1E1E35" stroke="#3B3B6B" />
+                    <circle cx="470" cy="565" r="14" fill="#FF4D9D" opacity="0.6" />
+                    <rect x="500" y="555" width="130" height="10" rx="5" fill="#FF4D9D" opacity="0.5" />
+                    <rect x="500" y="580" width="100" height="10" rx="5" fill="#FF4D9D" opacity="0.3" />
+                    <text x="500" y="620" fill="#FFD166" font-size="24">★★★★☆</text>
+                </g>
+            </g>
+
+            <g class="login-deco-shift login-deco-shift--ticket">
+                <g class="login-floatFast" opacity="0.4">
+                    <rect x="180" y="240" width="110" height="80" rx="12" fill="#23233D" />
+                    <rect x="180" y="220" width="110" height="20" rx="8" fill="#7C5CFF" opacity="0.6" />
+                    <line x1="200" y1="220" x2="200" y2="240" stroke="#fff" opacity="0.4" />
+                    <line x1="230" y1="220" x2="230" y2="240" stroke="#fff" opacity="0.4" />
+                    <line x1="260" y1="220" x2="260" y2="240" stroke="#fff" opacity="0.4" />
+                </g>
+            </g>
+
+            <g class="login-deco-shift login-deco-shift--reel">
+                <g class="login-floatMedium" opacity="0.45">
+                    <circle cx="1260" cy="340" r="54" fill="#23233D" />
+                    <circle cx="1260" cy="340" r="10" fill="#14142A" />
+                    <circle cx="1238" cy="320" r="7" fill="#14142A" />
+                    <circle cx="1282" cy="320" r="7" fill="#14142A" />
+                    <circle cx="1238" cy="360" r="7" fill="#14142A" />
+                    <circle cx="1282" cy="360" r="7" fill="#14142A" />
+                </g>
+            </g>
+
+            <g class="login-deco-shift login-deco-shift--miniBars">
+                <g class="login-floatSlow" opacity="0.4">
+                    <rect x="980" y="500" width="90" height="55" rx="12" fill="#23233D" />
+                    <rect x="990" y="515" width="30" height="25" rx="4" fill="#FF4D9D" opacity="0.8" />
+                    <rect x="1030" y="515" width="30" height="25" rx="4" fill="#7C5CFF" opacity="0.8" />
+                </g>
+            </g>
+
+            <g class="login-deco-shift login-deco-shift--filmQuad">
+                <g class="login-floatMedium" opacity="0.3">
+                    <path d="M700 420L820 450L790 520L670 490Z" fill="#2A2A48" />
+                    <rect x="690" y="435" width="18" height="12" fill="#111" />
+                    <rect x="805" y="463" width="18" height="12" fill="#111" />
+                </g>
+            </g>
+
+            <g class="login-deco-shift login-deco-shift--particles" opacity="0.35">
+                <circle cx="220" cy="640" r="4" fill="#FF4D9D" class="login-pulse" />
+                <circle cx="560" cy="130" r="3" fill="#7C5CFF" class="login-pulse" />
+                <circle cx="980" cy="760" r="4" fill="#FF4D9D" class="login-pulse" />
+                <circle cx="1380" cy="180" r="3" fill="#7C5CFF" class="login-pulse" />
+            </g>
+        </svg>
+    </div>
+
+    <div class="login-foreground">
+        <header class="login-header">
+            <a routerLink="/" class="logo-link" aria-label="ReviewFlix — home">
+                <span class="logo-text">
+                    <span class="logo-text__full">Review<span class="logo-highlight">Flix</span></span>
+                    <span class="logo-text__abbr" aria-hidden="true"><span class="logo-highlight">RF</span></span>
+                </span>
+            </a>
+        </header>
+
+        <div class="login-layout">
+            <p-card class="login-card">
+                <ng-template pTemplate="header">
+                    <form [formGroup]="AuthorizationTypeForm" class="login-type-form">
+                        <p-selectbutton
+                            class="login-type-switch"
+                            [options]="stateOptions"
+                            formControlName="AuthorizationType"
+                            optionLabel="label"
+                            optionValue="value" />
                     </form>
-                } @else {
-                    <form [formGroup]="registerForm" class="flex flex-column gap-2 w-full">
-                        <div class="flex flex-column gap-2 w-full">
-                            <label for="name">Name</label>
-                            <input 
-                                type="text" 
-                                pInputText 
-                                id="name" 
-                                class="w-full"
-                                formControlName="name"
-                            />
-                        </div>
-                        <div class="flex flex-column gap-2 w-full">
-                            <label for="email">Email</label>
-                            <input 
-                                type="email" 
-                                pInputText 
-                                id="email" 
-                                class="w-full"
-                                formControlName="email"
-                            />
-                        </div>
-                        <div class="flex flex-column gap-2 w-full">
-                            <label for="password-register">Password</label>
-                            <p-password
-                                formControlName="password"
-                                inputId="password-register"
-                                [fluid]="true"
-                                [toggleMask]="true" />
-                        </div>
-                    </form>
-                }
-            </ng-template>
+                </ng-template>
 
-            <ng-template pTemplate="footer">
-                @if (authType() === AuthorizationType.LOGIN) {
-                    <div class="login-actions">
-                        <p-button class="login-submit" severity="primary" label="Login" [fluid]="true" (click)="login()" />
-                    </div>
-                } @else {
-                    <div class="login-actions">
-                        <p-button class="login-submit" severity="secondary" label="Register" [fluid]="true" (click)="register()" />
-                    </div>
-                }
-            </ng-template>
-        </p-card>
+                <ng-template pTemplate="body">
+                    @if (authType() === AuthorizationType.LOGIN) {
+                        <form [formGroup]="loginForm" class="flex flex-column gap-2 w-full">
+                            <div class="flex flex-column gap-2 w-full">
+                                <label for="email">Email</label>
+                                <input type="email" pInputText id="email" class="w-full" formControlName="email" />
+                            </div>
+                            <div class="flex flex-column gap-2 w-full">
+                                <label for="password">Password</label>
+                                <p-password
+                                    formControlName="password"
+                                    inputId="password"
+                                    [fluid]="true"
+                                    [feedback]="false"
+                                    [toggleMask]="true" />
+                            </div>
+                        </form>
+                    } @else {
+                        <form [formGroup]="registerForm" class="flex flex-column gap-2 w-full">
+                            <div class="flex flex-column gap-2 w-full">
+                                <label for="name">Name</label>
+                                <input type="text" pInputText id="name" class="w-full" formControlName="name" />
+                            </div>
+                            <div class="flex flex-column gap-2 w-full">
+                                <label for="email">Email</label>
+                                <input type="email" pInputText id="email" class="w-full" formControlName="email" />
+                            </div>
+                            <div class="flex flex-column gap-2 w-full">
+                                <label for="password-register">Password</label>
+                                <p-password
+                                    formControlName="password"
+                                    inputId="password-register"
+                                    [fluid]="true"
+                                    [toggleMask]="true" />
+                            </div>
+                        </form>
+                    }
+                </ng-template>
+
+                <ng-template pTemplate="footer">
+                    @if (authType() === AuthorizationType.LOGIN) {
+                        <div class="login-actions">
+                            <p-button class="login-submit" severity="primary" label="Login" [fluid]="true" (click)="login()" />
+                        </div>
+                    } @else {
+                        <div class="login-actions">
+                            <p-button class="login-submit" severity="secondary" label="Register" [fluid]="true" (click)="register()" />
+                        </div>
+                    }
+                </ng-template>
+            </p-card>
+        </div>
     </div>
 </div>

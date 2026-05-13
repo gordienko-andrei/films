@@ -3,7 +3,13 @@
     min-width: 0;
 }
 
-$poster-card-w: 15.5rem;
+/* Скелетоны — горизонтальный ряд как раньше; ширина карточки адаптивнее на узких экранах */
+$poster-skeleton-w: clamp(9.25rem, 40vw, 15.5rem);
+
+.movie-carousel__carousel {
+    width: 100%;
+    min-width: 0;
+}
 
 .movie-carousel__scroller {
     display: flex;
@@ -19,11 +25,46 @@ $poster-card-w: 15.5rem;
     scroll-padding-right: 1rem;
 
     padding-block: 0.25rem;
-    padding-right: 1rem; // позволяет доскроллить так, чтобы последний постер был целиком
+    padding-right: 1rem;
 
     scrollbar-width: thin;
 }
 
+.movie-carousel__scroller--skeleton {
+    pointer-events: none;
+}
+
+.carousel-skeleton-item {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    width: $poster-skeleton-w;
+    max-width: $poster-skeleton-w;
+    min-width: $poster-skeleton-w;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+
+    &__poster-wrap {
+        width: 100%;
+        aspect-ratio: 2 / 3;
+        border-radius: 1rem;
+        overflow: hidden;
+
+        ::ng-deep .p-skeleton {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
+    }
+
+    ::ng-deep .p-skeleton {
+        width: 100%;
+    }
+}
+
+/* Карточка внутри слота PrimeNG: заполняет колонку (глобальные .poster-carousel правила задают ширину слота) */
 .carousel-item {
     box-sizing: border-box;
     display: flex;
@@ -32,26 +73,16 @@ $poster-card-w: 15.5rem;
     flex-direction: column;
     gap: 0.5rem;
     height: 100%;
-    width: $poster-card-w;
-    max-width: $poster-card-w;
-    min-width: $poster-card-w;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     margin-inline: auto;
     padding-inline: 0;
     color: #fff;
     text-decoration: none;
-    scroll-snap-align: start;
-
-    @media (max-width: 767px) {
-        width: $poster-card-w;
-        max-width: $poster-card-w;
-        min-width: $poster-card-w;
-    }
 
     @media (min-width: 768px) {
         gap: 0.75rem;
-        margin-left: 0;
-        margin-right: 0;
-        padding-inline: 0;
     }
 
     &:visited,
@@ -63,18 +94,12 @@ $poster-card-w: 15.5rem;
     }
 
     &__image {
-        width: $poster-card-w;
-        max-width: $poster-card-w;
-        min-width: $poster-card-w;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
         aspect-ratio: 2 / 3;
         overflow: hidden;
         flex-shrink: 0;
-
-        @media (max-width: 767px) {
-            width: $poster-card-w;
-            max-width: $poster-card-w;
-            min-width: $poster-card-w;
-        }
 
         &-img {
             display: block;
@@ -92,6 +117,7 @@ $poster-card-w: 15.5rem;
         line-height: 1.25;
         text-align: center;
         width: 100%;
+        min-width: 0;
         line-clamp: 2;
         display: -webkit-box;
         -webkit-box-orient: vertical;

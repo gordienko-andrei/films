@@ -5,10 +5,16 @@
     }
 
     .create-review-card {
-        --p-rating-icon-size: 2rem;
+        --p-rating-icon-size: clamp(1.55rem, 5.2vw, 2rem);
+        --p-rating-gap: clamp(0.16rem, 0.95vw, 0.5rem);
         --p-rating-icon-active-color: #dc2626;
         --p-rating-icon-color: #cbd5e1;
-        --p-rating-gap: 0.5rem;
+    }
+
+    .create-review-card .p-rating {
+        flex-wrap: wrap;
+        row-gap: 0.35rem;
+        max-width: 100%;
     }
 
     .p-accordion-panel {
@@ -50,3 +56,4 @@
         }
     }
 }
+

@@ -1,34 +1,57 @@
 <div class="home-wrapper">
-    @if(recentlyDiscussedFilms.length > 0) {
+    @if (mainFeedLoading || recentlyDiscussedFilms.length > 0) {
         <div class="recently__discussed-block">
-            <app-movie-carousel [title]="'Recently Discussed Movies'" [movies]="recentlyDiscussedFilms"></app-movie-carousel>
+            <app-movie-carousel
+                [title]="'Recently Discussed Movies'"
+                [movies]="recentlyDiscussedFilms"
+                [loading]="mainFeedLoading"></app-movie-carousel>
         </div>
     }
     <div class="new-movies-block">
-        <app-movie-carousel [title]="'Hot New Releases'" [movies]="newMovies"></app-movie-carousel>
+        <app-movie-carousel
+            [title]="'Hot New Releases'"
+            [movies]="newMovies"
+            [loading]="mainFeedLoading"></app-movie-carousel>
     </div>
     <div class="trending-block">
-        <app-movie-carousel [title]="'Trending Movies'" [movies]="trendingMovies"></app-movie-carousel>
+        <app-movie-carousel
+            [title]="'Trending Movies'"
+            [movies]="trendingMovies"
+            [loading]="mainFeedLoading"></app-movie-carousel>
     </div>
 
-    @if (becauseYouLiked.length > 0) {
+    @if (becauseYouLikedLoading || becauseYouLiked.length > 0) {
         <div class="because-you-liked-block">
-            <app-movie-carousel [title]="'Because You Liked'" [movies]="becauseYouLiked"></app-movie-carousel>
+            <app-movie-carousel
+                [title]="'Because You Liked'"
+                [movies]="becauseYouLiked"
+                [loading]="becauseYouLikedLoading"></app-movie-carousel>
         </div>
     }
 
-    @if (topRatedThisWeek.length > 0) {
+    @if (mainFeedLoading || topRatedThisWeek.length > 0) {
         <div class="top-rated-week-block">
-            <app-movie-carousel [title]="'Top Rated This Week'" [movies]="topRatedThisWeek"></app-movie-carousel>
+            <app-movie-carousel
+                [title]="'Top Rated This Week'"
+                [movies]="topRatedThisWeek"
+                [loading]="mainFeedLoading"></app-movie-carousel>
         </div>
     }
 
-    @if (mostDiscussed.length > 0) {
+    @if (mainFeedLoading || mostDiscussed.length > 0) {
         <div class="most-discussed-block">
-            <app-movie-carousel [title]="'Most Discussed'" [movies]="mostDiscussed"></app-movie-carousel>
+            <app-movie-carousel
+                [title]="'Most Discussed'"
+                [movies]="mostDiscussed"
+                [loading]="mainFeedLoading"></app-movie-carousel>
         </div>
     }
 
+    @if (mainFeedLoading && moodPicks.length === 0) {
+        <div class="mood-pick-block">
+            <app-movie-carousel [title]="'Mood picks'" [movies]="[]" [loading]="true"></app-movie-carousel>
+        </div>
+    }
     @for (pick of moodPicks; track pick.slug) {
         @if (pick.movies.length > 0) {
             <div class="mood-pick-block">
@@ -37,12 +60,20 @@
         }
     }
 
-    @if (hiddenGems.length > 0) {
+    @if (mainFeedLoading || hiddenGems.length > 0) {
         <div class="hidden-gems-block">
-            <app-movie-carousel [title]="'Hidden Gems'" [movies]="hiddenGems"></app-movie-carousel>
+            <app-movie-carousel
+                [title]="'Hidden Gems'"
+                [movies]="hiddenGems"
+                [loading]="mainFeedLoading"></app-movie-carousel>
         </div>
     }
 
+    @if (mainFeedLoading && genrePicks.length === 0) {
+        <div class="genre-pick-block">
+            <app-movie-carousel [title]="'Genre spotlights'" [movies]="[]" [loading]="true"></app-movie-carousel>
+        </div>
+    }
     @for (g of genrePicks; track g.genre) {
         @if (g.movies.length > 0) {
             <div class="genre-pick-block">
@@ -51,6 +82,3 @@
         }
     }
 </div>
-
-
-

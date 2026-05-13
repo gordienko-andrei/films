@@ -4,17 +4,17 @@ import { CarouselModule } from 'primeng/carousel';
 import { MoviesService } from '../../../services/movies.service';
 import { SessionService } from '../../../services/session.service';
 import { Movie, MoodPick, GenrePick } from '../../../interfaces/movie.interface';
-import { catchError, first, of, switchMap, tap } from 'rxjs';
-import { MovieCarouselComponent } from "../../../components/movie-carousel/movie-carousel.component";
+import { catchError, finalize, first, forkJoin, of, switchMap, tap } from 'rxjs';
+import { MovieCarouselComponent } from '../../../components/movie-carousel/movie-carousel.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
   imports: [CarouselModule, MovieCarouselComponent],
   templateUrl: './home.component.html',
-  styleUrl: './home.component.scss'
+  styleUrl: './home.component.scss',
 })
-export class HomeComponent implements OnInit{
+export class HomeComponent implements OnInit {
   private moviesService = inject(MoviesService);
   private session = inject(SessionService);
   private platformId = inject(PLATFORM_ID);
@@ -29,49 +29,44 @@ export class HomeComponent implements OnInit{
   public hiddenGems: Movie[] = [];
   public genrePicks: GenrePick[] = [];
 
+  /** Один флаг на все основные коллекции: скелетоны исчезают вместе после forkJoin */
+  mainFeedLoading = false;
+  becauseYouLikedLoading = false;
+
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.getNewMovies();
-      this.getRecentlyDiscussed();
-      this.getTrendingMovies();
-      this.getTopRatedThisWeek();
-      this.getMostDiscussed();
-      this.getMoodPicks();
-      this.getHiddenGems();
-      this.getGenreSpotlights();
+      this.mainFeedLoading = true;
+      this.becauseYouLikedLoading = true;
+      this.loadMainFeed();
       this.loadBecauseYouLikedIfSignedIn();
     }
   }
 
-  getNewMovies() {
-    this.moviesService.getNewMovies()
+  private loadMainFeed(): void {
+    forkJoin({
+      recentlyDiscussed: this.moviesService.getRecentlyDiscussed().pipe(catchError(() => of([] as Movie[]))),
+      newMovies: this.moviesService.getNewMovies().pipe(catchError(() => of([] as Movie[]))),
+      trending: this.moviesService.getTrending().pipe(catchError(() => of([] as Movie[]))),
+      topRated: this.moviesService.getTopRatedThisWeek().pipe(catchError(() => of([] as Movie[]))),
+      mostDiscussed: this.moviesService.getMostDiscussed().pipe(catchError(() => of([] as Movie[]))),
+      moodPicks: this.moviesService.getMoodPicks(12).pipe(catchError(() => of([] as MoodPick[]))),
+      hiddenGems: this.moviesService.getHiddenGems().pipe(catchError(() => of([] as Movie[]))),
+      genrePicks: this.moviesService.getGenreSpotlights(8, 12).pipe(catchError(() => of([] as GenrePick[]))),
+    })
       .pipe(
-        tap((movies) => {
-          this.newMovies = movies;
+        tap((res) => {
+          this.recentlyDiscussedFilms = res.recentlyDiscussed;
+          this.newMovies = res.newMovies;
+          this.trendingMovies = res.trending;
+          this.topRatedThisWeek = res.topRated;
+          this.mostDiscussed = res.mostDiscussed;
+          this.moodPicks = res.moodPicks;
+          this.hiddenGems = res.hiddenGems;
+          this.genrePicks = res.genrePicks;
         }),
-        first()
-      )
-      .subscribe();
-  }
-
-  getRecentlyDiscussed() {
-    this.moviesService.getRecentlyDiscussed()
-      .pipe(
-        tap((films) => {
-          this.recentlyDiscussedFilms = films;
+        finalize(() => {
+          this.mainFeedLoading = false;
         }),
-        first()
-      )
-      .subscribe();
-  }
-
-  getTrendingMovies() {
-    this.moviesService.getTrending()
-      .pipe(
-        tap((movies) => {
-          this.trendingMovies = movies;
-        }),
-        first()
       )
       .subscribe();
   }
@@ -82,78 +77,14 @@ export class HomeComponent implements OnInit{
       .pipe(
         first(),
         switchMap((u) =>
-          u
-            ? this.moviesService.getBecauseYouLiked().pipe(catchError(() => of([])))
-            : of([]),
+          u ? this.moviesService.getBecauseYouLiked().pipe(catchError(() => of([] as Movie[]))) : of([] as Movie[]),
         ),
         tap((movies) => {
           this.becauseYouLiked = movies;
         }),
-      )
-      .subscribe();
-  }
-
-  getTopRatedThisWeek() {
-    this.moviesService
-      .getTopRatedThisWeek()
-      .pipe(
-        catchError(() => of([])),
-        tap((movies) => {
-          this.topRatedThisWeek = movies;
+        finalize(() => {
+          this.becauseYouLikedLoading = false;
         }),
-        first(),
-      )
-      .subscribe();
-  }
-
-  getMostDiscussed() {
-    this.moviesService
-      .getMostDiscussed()
-      .pipe(
-        catchError(() => of([])),
-        tap((movies) => {
-          this.mostDiscussed = movies;
-        }),
-        first(),
-      )
-      .subscribe();
-  }
-
-  getMoodPicks() {
-    this.moviesService
-      .getMoodPicks(12)
-      .pipe(
-        catchError(() => of([] as MoodPick[])),
-        tap((picks) => {
-          this.moodPicks = picks;
-        }),
-        first(),
-      )
-      .subscribe();
-  }
-
-  getHiddenGems() {
-    this.moviesService
-      .getHiddenGems()
-      .pipe(
-        catchError(() => of([])),
-        tap((movies) => {
-          this.hiddenGems = movies;
-        }),
-        first(),
-      )
-      .subscribe();
-  }
-
-  getGenreSpotlights() {
-    this.moviesService
-      .getGenreSpotlights(8, 12)
-      .pipe(
-        catchError(() => of([] as GenrePick[])),
-        tap((picks) => {
-          this.genrePicks = picks;
-        }),
-        first(),
       )
       .subscribe();
   }

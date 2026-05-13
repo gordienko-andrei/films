@@ -68,11 +68,20 @@ export class LoginComponent implements OnInit {
       .pipe(
         tap((value) => {
           this.authType.set(value);
+          this.scrollLoginPageToTop();
           this.cdr.markForCheck();
         }),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe();
+  }
+
+  private scrollLoginPageToTop(): void {
+    const y = 0;
+    window.scrollTo({ top: y, left: 0, behavior: 'auto' });
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: y, left: 0, behavior: 'auto' });
+    });
   }
 
   login() {

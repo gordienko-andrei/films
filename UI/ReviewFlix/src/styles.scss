@@ -32,7 +32,8 @@ body {
     justify-content: center;
     box-sizing: border-box;
     padding-inline: 0.25rem;
-    flex: 0 0 calc(100% / 5);
+    flex-grow: 0 !important;
+    max-width: min(15.5rem, 100%);
 }
 
 .poster-carousel .p-carousel-viewport {
@@ -65,7 +66,8 @@ body {
     }
 
     .poster-carousel .p-carousel-item {
-        flex: 0 0 calc(100% / 2.5);
+        flex-grow: 0 !important;
+        max-width: min(12.5rem, 46vw);
     }
 
     .p-card .p-card-body {
