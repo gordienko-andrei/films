@@ -1,0 +1,66 @@
+.chip-container {
+  display: inline-flex;
+  align-items: center;
+}
+
+.chip-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 9999px;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-card);
+  color: var(--text-color);
+  cursor: pointer;
+  transition:
+    background-color 90ms ease-out,
+    border-color 90ms ease-out,
+    box-shadow 90ms ease-out;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.chip-icon {
+  font-weight: 700;
+  line-height: 1;
+}
+
+.chip-container--selected .chip-label {
+  border-color: #7dd3fc;
+  background: rgba(56, 189, 248, 0.24);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.45);
+}
+
+.chip-container--selected .chip-icon.pi-plus {
+  transform: rotate(45deg);
+}
+
+.chip-container--disabled .chip-label {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .chip-container:not(.chip-container--disabled) .chip-label:hover {
+    border-color: #7dd3fc;
+    background: rgba(56, 189, 248, 0.14);
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .chip-label {
+    transition: none;
+  }
+}
+
+:host ::ng-deep .chip-container .p-checkbox {
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+:host ::ng-deep .chip-container .p-checkbox-box {
+  display: none !important;
+}

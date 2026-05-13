@@ -1,4 +1,12 @@
 :host ::ng-deep {
+    .reviews-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 1rem;
+    }
+
     .review-item {
         .p-card-body {
             background-color: #27272a;
@@ -8,29 +16,27 @@
 
     .review-item__content {
         display: flex;
-        align-items: stretch; // Растягивает блоки на одинаковую высоту
+        align-items: stretch; 
         justify-content: space-between;
         gap: 0.5rem;
     }
 
     .review-item__content-left {
         width: 100%;
-        // Убрано height: fit-content и align-self
         transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         .p-card-body {
             background-color: rgba(255, 255, 255, 0.05);
             border-radius: 8px;
-            height: 100%; // Растягиваем внутренний контент на всю высоту
+            height: 100%; 
         }
     }
 
     .review-item__content-right {
         width: 50%;
-        // Убрано height: fit-content и align-self
         .p-card-body {
             background-color: rgba(255, 255, 255, 0.05);
             border-radius: 8px;
-            height: 100%; // Растягиваем внутренний контент на всю высоту
+            height: 100%;
         }
     }
 
@@ -40,7 +46,7 @@
         width: 0;
         min-width: 0;
         flex-shrink: 0;
-        height: 0; // Убираем высоту когда скрыт
+        height: 0; 
         overflow: hidden;
         transform: translateX(-20px);
         transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
@@ -54,7 +60,7 @@
             opacity: 1;
             visibility: visible;
             width: 50%;
-            height: auto; // Автоматическая высота по содержимому
+            height: auto; 
             transform: translateX(0) scale(1);
             transition-delay: 0.1s;
         }

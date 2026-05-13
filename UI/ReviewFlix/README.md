@@ -14,6 +14,20 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
 
+### Production API URL strategy
+
+`src/environments/environment.prod.ts` uses `apiUrl: '__API_URL__'`.
+
+For release builds, replace this placeholder in CI/CD from a secret/variable (for example `UI_API_URL`), then run:
+
+```bash
+npm run build:ci
+```
+
+In GitHub Actions, this is already wired in `.github/workflows/ci.yml` via:
+- `UI_API_URL` secret for API origin
+- `sed` replacement before frontend production build
+
 ## Running unit tests
 
 Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).

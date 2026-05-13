@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { EmojiRatingComponent } from './emoji-rating.component';
+import { commonTestingProviders } from '../../../../testing/common-testing-providers';
 
 describe('EmojiRatingComponent', () => {
   let component: EmojiRatingComponent;
@@ -8,7 +9,8 @@ describe('EmojiRatingComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EmojiRatingComponent]
+      imports: [EmojiRatingComponent],
+      providers: commonTestingProviders(),
     })
     .compileComponents();
 

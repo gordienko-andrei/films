@@ -1,5 +1,5 @@
 import { Component, EventEmitter, inject, Input, Output, OnInit } from '@angular/core';
-import { NonNullableFormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { NonNullableFormBuilder, FormGroup, FormArray, Validators, FormControl } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { StepperModule } from 'primeng/stepper';
 import { CardModule } from 'primeng/card';
@@ -17,9 +17,10 @@ import { MessageService } from 'primeng/api';
 import { ReviewCriterionTemplate, ReviewTag } from '../../../interfaces/review.interface';
 import { SessionService } from '../../../services/session.service';
 import { Router } from '@angular/router';
+import { CheckboxModule } from 'primeng/checkbox';
+import { SelectableChipComponent } from '../../../components/selectable-chip/selectable-chip.component';
 
 @Component({
-  
   selector: 'app-create-review',
   standalone: true,
   imports: [
@@ -33,6 +34,8 @@ import { Router } from '@angular/router';
     TextareaModule, 
     ReactiveFormsModule, 
     AccordionModule,
+    CheckboxModule,
+    SelectableChipComponent,
   ],
   templateUrl: './create-review.component.html',
   styleUrl: './create-review.component.scss'
@@ -57,8 +60,8 @@ export class CreateReviewComponent implements OnInit {
 
   isLoading = false;
 
-  get tagIdsControl() {
-    return this.reviewForm.get('tagIds');
+  get tagIdsControl(): FormControl<number[]> {
+    return this.reviewForm.get('tagIds') as FormControl<number[]>;
   }
   
   constructor() {

@@ -1,0 +1,16 @@
+<div
+  class="chip-container"
+  [class.chip-container--selected]="checked"
+  [class.chip-container--disabled]="isDisabled">
+  <p-checkbox
+    [binary]="true"
+    [ngModel]="checked"
+    (onChange)="onCheckboxChange(!!$event.checked)"
+    (onBlur)="markTouched()"
+    [inputId]="tagId().toString()"
+    [disabled]="isDisabled" />
+  <label [for]="tagId().toString()" class="chip-label">
+    <i class="chip-icon pi" [class.pi-check]="checked" [class.pi-plus]="!checked" aria-hidden="true"></i>
+    <span>{{ tagName() }}</span>
+  </label>
+</div>

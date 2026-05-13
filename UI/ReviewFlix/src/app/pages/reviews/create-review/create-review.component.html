@@ -82,15 +82,16 @@
             <p-accordion-panel value="3">
                 <p-accordion-header>Tags</p-accordion-header>
                 <p-accordion-content>
-                    <div class="flex flex-column gap-4 w-6">
-                        <p-multiSelect 
-                            formControlName="tagIds"
-                            [options]="reviewTags"
-                            optionLabel="name"
-                            optionValue="id"
-                            placeholder="Select tags"
-                            appendTo="body">
-                        </p-multiSelect>
+                    <div class="flex flex-row flex-wrap gap-2 w-full">
+                        @for(tag of reviewTags; track tag.id) {
+                            <div class="flex py-2">
+                                <app-selectable-chip
+                                  [tag]="tag"
+                                  [disabled]="false"
+                                  [selectedTagIds]="tagIdsControl.value"
+                                  [formControl]="tagIdsControl" />
+                            </div>
+                        }
                     </div>
                 </p-accordion-content>
             </p-accordion-panel>
