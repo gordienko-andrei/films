@@ -19,6 +19,20 @@ import { CreateReviewDto } from './dto/create-review.dto';
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
+  @Get('criterion-templates')
+  @ApiOperation({ summary: 'List review criterion templates (for create-review form)' })
+  @ApiResponse({ status: 200, description: 'Templates returned' })
+  getCriterionTemplates() {
+    return this.reviewsService.findAllCriterionTemplates();
+  }
+
+  @Get('tags')
+  @ApiOperation({ summary: 'List review tags (for create-review form)' })
+  @ApiResponse({ status: 200, description: 'Tags returned' })
+  getReviewTags() {
+    return this.reviewsService.findAllReviewTags();
+  }
+
   @Post(':movieId')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

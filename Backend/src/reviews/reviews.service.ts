@@ -11,6 +11,66 @@ export class ReviewsService {
     private analysisService: AnalysisService,
   ) {}
 
+  async findAllCriterionTemplates() {
+    await this.ensureDefaultCriterionTemplates();
+    return this.prisma.reviewCriterionTemplate.findMany({
+      orderBy: { id: 'asc' },
+    });
+  }
+
+  async findAllReviewTags() {
+    await this.ensureDefaultReviewTags();
+    return this.prisma.reviewTag.findMany({
+      orderBy: { id: 'asc' },
+    });
+  }
+
+  private async ensureDefaultCriterionTemplates(): Promise<void> {
+    const count = await this.prisma.reviewCriterionTemplate.count();
+    if (count > 0) return;
+
+    const rows: { name: string; category: string; weight: number; isRequired: boolean }[] = [
+      { name: 'Story', category: 'story', weight: 1.2, isRequired: false },
+      { name: 'Acting', category: 'acting', weight: 1.2, isRequired: false },
+      { name: 'Direction', category: 'directing', weight: 1.0, isRequired: false },
+      { name: 'Cinematography', category: 'technical', weight: 1.0, isRequired: false },
+      { name: 'Music & sound', category: 'audio', weight: 0.9, isRequired: false },
+      { name: 'Pacing', category: 'pacing', weight: 0.9, isRequired: false },
+    ];
+
+    for (const r of rows) {
+      await this.prisma.reviewCriterionTemplate.upsert({
+        where: { name: r.name },
+        create: r,
+        update: { category: r.category, weight: r.weight, isRequired: r.isRequired },
+      });
+    }
+  }
+
+  private async ensureDefaultReviewTags(): Promise<void> {
+    const count = await this.prisma.reviewTag.count();
+    if (count > 0) return;
+
+    const rows: { name: string; category: string }[] = [
+      { name: 'Masterpiece', category: 'mood' },
+      { name: 'Rewatchable', category: 'mood' },
+      { name: 'Slow / dull', category: 'mood' },
+      { name: 'Twist ending', category: 'genre-feel' },
+      { name: 'Family-friendly', category: 'audience' },
+      { name: 'Mature themes', category: 'audience' },
+      { name: 'Funny', category: 'mood' },
+      { name: 'Dramatic', category: 'genre-feel' },
+    ];
+
+    for (const r of rows) {
+      await this.prisma.reviewTag.upsert({
+        where: { name: r.name },
+        create: r,
+        update: { category: r.category },
+      });
+    }
+  }
+
   async create(
     movieId: string,
     reviewData: CreateReviewDto,
@@ -78,7 +138,6 @@ export class ReviewsService {
 
   private async createReviewMetadata(reviewId: number, content: string): Promise<void> {
     try {
-      // Используем AnalysisService для анализа
       const analysis = await this.analysisService.analyzeReviewContent({
         id: reviewId,
         content,
@@ -89,7 +148,6 @@ export class ReviewsService {
         updatedAt: new Date(),
       } as Review);
 
-      // Сохраняем метаданные
       await this.prisma.reviewMetadata.upsert({
         where: { reviewId },
         create: {
@@ -104,7 +162,6 @@ export class ReviewsService {
       });
     } catch (error) {
       console.error('Error in createReviewMetadata:', error);
-      // Не бросаем ошибку, чтобы не нарушить создание отзыва
     }
   }
 
